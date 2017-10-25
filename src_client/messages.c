@@ -1,5 +1,3 @@
-/* A simple server in the internet domain using TCP
-   The port number is passed as an argument */
 #include <stdio.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
@@ -20,6 +18,7 @@ int initialize_client()
   int ret;
   struct sockaddr_un driver_address;
   char buffer[BUFFER_SIZE];
+  int i;
 
   printf("In C code\n");
 
@@ -39,10 +38,29 @@ int initialize_client()
     error("Could not connect to server");
   }
 
-  //send a message through the socket
-  strcpy(buffer, "END");
-  ret = write(socket_to_driver, buffer, strlen(buffer) + 1);
-  if (ret < 0) {
-    error("Could not write to socket");
+  for (;;) {
+
+    //send a message through the socket
+    strcpy(buffer, "FORCES");
+    ret = write(socket_to_driver, buffer, strlen(buffer) + 1);
+    if (ret < 0) {
+      error("Could not write to socket");
+    }
+
+    //read message from client
+    ret = read(socket_to_driver, buffer, BUFFER_SIZE);
+    if (ret < 0) {
+      error("Could not read message");
+    }
+
+    printf("Buffer: %s",buffer);
+    printf("\n");
+
+    if ( strcmp(buffer,"EXIT") == 0 ) {
+      printf("Client exiting\n");
+      exit(0);
+    }
+
   }
+
 }

@@ -15,7 +15,6 @@ program client
   write(6,*) ""
   write(6,*) "I am the client"
 
-  !call initialize()
   ret = initialize_client()
 
 end program client

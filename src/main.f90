@@ -21,7 +21,7 @@ program driver
   ret = initialize_server()
 
   !start the client
-  call execute_command_line("/project/projectdirs/m1944/tabarnes/edison/qmmm/pipes/build/src_client/client")
+  call execute_command_line("/project/projectdirs/m1944/tabarnes/edison/qmmm/pipes/build/src_client/client", WAIT=.FALSE.)
 
   !start communicating with the client
   ret = communicate()

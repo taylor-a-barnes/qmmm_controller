@@ -1,5 +1,4 @@
-/* A simple server in the internet domain using TCP
-   The port number is passed as an argument */
+/* Server code for the QM/MM driver */
 #include <stdio.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
@@ -54,6 +53,8 @@ int initialize_server()
 
 int communicate()
 {
+  int i;
+  int max_iterations = 10;
 
   //accept a connection
   qm_socket_in = accept(qm_socket, NULL, NULL);
@@ -61,12 +62,35 @@ int communicate()
     error("Could not accept connection");
   }
 
-  //read message from client
-  ret = read(qm_socket_in, buffer, BUFFER_SIZE);
-  if (ret < 0) {
-    error("Could not read message");
+  for (i=1; i <= max_iterations+1; i++) {
+    printf("\nIteration %i",i);
+    printf("\n");
+
+
+    //read message from client
+    ret = read(qm_socket_in, buffer, BUFFER_SIZE);
+    if (ret < 0) {
+      error("Could not read message");
+    }
+    
+    printf(buffer);
+    printf("\n");
+    
+
+
+
+    //send a message through the socket
+    if (i <= max_iterations) {
+      strcpy(buffer, "ATOMS");
+    }
+    else {
+      strcpy(buffer, "EXIT");
+    }
+    ret = write(qm_socket_in, buffer, strlen(buffer) + 1);
+    if (ret < 0) {
+      error("Could not write to socket");
+    }
+
   }
 
-  printf(buffer);
-  printf("\n");
 }
