@@ -1,1 +1,1 @@
-add_executable(controller main.f90)
+add_executable(controller messages.c main.f90)

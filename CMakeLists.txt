@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(Controller
-	LANGUAGES Fortran)
+	LANGUAGES C Fortran)
 
 #set(MY_VARIABLE "This is a variable")
 
@@ -15,3 +15,4 @@ project(Controller
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 add_subdirectory(src)
+add_subdirectory(src_client)
