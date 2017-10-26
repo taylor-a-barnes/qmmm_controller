@@ -109,7 +109,7 @@ int receive_coordinates()
 {
   int i;
   int ret;
-  float coords[3*natoms];
+  double coords[3*natoms];
 
   receive_array(coords, sizeof(coords));
 

@@ -132,7 +132,7 @@ int send_initialization()
 int send_coordinates()
 {
   int i;
-  float coords[3*natoms];
+  double coords[3*natoms];
 
   //label this message
   send_text("COORDS");
