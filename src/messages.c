@@ -8,7 +8,6 @@
 #include "messages.h"
 
 int qm_socket, qm_socket_in;
-int ret;
 struct sockaddr_un qm_server, qm_client;
 char buffer[BUFFER_SIZE];
 
@@ -20,6 +19,7 @@ void error(char *msg)
 
 int initialize_server()
 {
+  int ret;
 
   printf("In C code\n");
 
@@ -53,6 +53,7 @@ int initialize_server()
 
 int communicate()
 {
+  int ret;
   int i;
   int max_iterations = 10;
 
@@ -81,16 +82,36 @@ int communicate()
 
     //send a message through the socket
     if (i <= max_iterations) {
-      strcpy(buffer, "ATOMS");
+      send_positions();
     }
     else {
-      strcpy(buffer, "EXIT");
-    }
-    ret = write(qm_socket_in, buffer, strlen(buffer) + 1);
-    if (ret < 0) {
-      error("Could not write to socket");
+      send_exit();
     }
 
   }
 
+}
+
+/* Send atomic positions through the socket */
+int send_positions()
+{
+  send_text("POSITIONS");
+}
+
+/* Send exit signal through the socket */
+int send_exit()
+{
+  send_text("EXIT");
+}
+
+/* Send text through the socket */
+int send_text(char *msg)
+{
+  int ret;
+
+  strcpy(buffer, msg);
+  ret = write(qm_socket_in, buffer, strlen(buffer) + 1);
+  if (ret < 0) {
+    error("Could not write to socket");
+  }
 }
