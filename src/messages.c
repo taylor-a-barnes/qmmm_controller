@@ -12,12 +12,19 @@ struct sockaddr_un qm_server, qm_client;
 char buffer[BUFFER_SIZE];
 
 int natoms = 3;
+int num_qm = 0;
+int num_mm = 0;
+int ntypes = 0;
+
+
 
 void error(char *msg)
 {
   perror(msg);
   exit(1);
 }
+
+
 
 int initialize_server()
 {
@@ -53,6 +60,8 @@ int initialize_server()
   
 }
 
+
+
 int communicate()
 {
   int ret;
@@ -65,22 +74,12 @@ int communicate()
     error("Could not accept connection");
   }
 
+  //send information about number of atoms, etc. to the client
+  send_initialization();
+
   for (i=1; i <= max_iterations+1; i++) {
     printf("\nIteration %i",i);
     printf("\n");
-
-
-    //read message from client
-    ret = read(qm_socket_in, buffer, BUFFER_SIZE);
-    if (ret < 0) {
-      error("Could not read message");
-    }
-    
-    printf(buffer);
-    printf("\n");
-    
-
-
 
     //send a message through the socket
     if (i <= max_iterations) {
@@ -90,15 +89,49 @@ int communicate()
       send_exit();
     }
 
+
+    //read message from client
+    /*
+    ret = read(qm_socket_in, buffer, BUFFER_SIZE);
+    if (ret < 0) {
+      error("Could not read message");
+    }
+    */
+    read_label(buffer);
+    
+    printf(buffer);
+    printf("\n");
+    
+
   }
 
 }
+
+
+
+/* Send initialization information through the socket */
+int send_initialization()
+{
+  int init[4];
+
+  //label this message
+  send_text("INIT");
+
+  //send the nuclear coordinates
+  init[0] = natoms;
+  init[1] = num_qm;
+  init[2] = num_mm;
+  init[3] = ntypes;
+
+  send_array(init, sizeof(init));
+}
+
+
 
 /* Send atomic positions through the socket */
 int send_coordinates()
 {
   int i;
-  int ret;
   float coords[3*natoms];
 
   //label this message
@@ -112,11 +145,15 @@ int send_coordinates()
   send_array(coords, sizeof(coords));
 }
 
+
+
 /* Send exit signal through the socket */
 int send_exit()
 {
   send_text("EXIT");
 }
+
+
 
 /* Send text through the socket */
 int send_text(char *msg)
@@ -130,6 +167,8 @@ int send_text(char *msg)
   }
 }
 
+
+
 /* Send an array through the socket */
 int send_array(void *data, int size)
 {
@@ -140,5 +179,19 @@ int send_array(void *data, int size)
   ret = write(qm_socket_in, data, size);
   if (ret < 0) {
     error("Could not write to socket");
+  }
+}
+
+
+
+/* Read a label from the socket */
+int read_label(char *buf)
+{
+  int ret;
+
+  //read message from client
+  ret = read(qm_socket_in, buf, BUFFER_SIZE);
+  if (ret < 0) {
+    error("Could not read message");
   }
 }
