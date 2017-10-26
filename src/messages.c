@@ -11,6 +11,8 @@ int qm_socket, qm_socket_in;
 struct sockaddr_un qm_server, qm_client;
 char buffer[BUFFER_SIZE];
 
+int natoms = 3;
+
 void error(char *msg)
 {
   perror(msg);
@@ -82,7 +84,7 @@ int communicate()
 
     //send a message through the socket
     if (i <= max_iterations) {
-      send_positions();
+      send_coordinates();
     }
     else {
       send_exit();
@@ -93,9 +95,21 @@ int communicate()
 }
 
 /* Send atomic positions through the socket */
-int send_positions()
+int send_coordinates()
 {
-  send_text("POSITIONS");
+  int i;
+  int ret;
+  float coords[3*natoms];
+
+  //label this message
+  send_text("COORDS");
+
+  //send the nuclear coordinates
+  for (i=0; i < 3*natoms; i++) {
+    coords[i] = 1.0;
+    printf("coords: %i %f\n",i,coords[i]);
+  }
+  send_array(coords, sizeof(coords));
 }
 
 /* Send exit signal through the socket */
@@ -111,6 +125,19 @@ int send_text(char *msg)
 
   strcpy(buffer, msg);
   ret = write(qm_socket_in, buffer, strlen(buffer) + 1);
+  if (ret < 0) {
+    error("Could not write to socket");
+  }
+}
+
+/* Send an array through the socket */
+int send_array(void *data, int size)
+{
+  int ret;
+
+  printf("len: %i",sizeof(data));
+
+  ret = write(qm_socket_in, data, size);
   if (ret < 0) {
     error("Could not write to socket");
   }

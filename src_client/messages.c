@@ -6,6 +6,10 @@
 #include <errno.h>
 #include "messages.h"
 
+int socket_to_driver;
+
+int natoms = 3;
+
 void error(char *msg)
 {
   perror(msg);
@@ -14,7 +18,6 @@ void error(char *msg)
 
 int initialize_client()
 {
-  int socket_to_driver;
   int ret;
   struct sockaddr_un driver_address;
   char buffer[BUFFER_SIZE];
@@ -56,11 +59,31 @@ int initialize_client()
     printf("Buffer: %s",buffer);
     printf("\n");
 
-    if ( strcmp(buffer,"EXIT") == 0 ) {
+    if ( strcmp(buffer,"COORDS") == 0 ) {
+      receive_coordinates();
+    }
+    else if ( strcmp(buffer,"EXIT") == 0 ) {
       printf("Client exiting\n");
       exit(0);
     }
 
+  }
+
+}
+
+int receive_coordinates()
+{
+  int i;
+  int ret;
+  float coords[3*natoms];
+
+  ret = read(socket_to_driver, coords, sizeof(coords));
+  if (ret < 0) {
+    error("Could not read message");
+  }
+
+  for (i=0; i < 3*natoms; i++) {
+    printf("received coords: %i %f\n",i,coords[i]);
   }
 
 }
