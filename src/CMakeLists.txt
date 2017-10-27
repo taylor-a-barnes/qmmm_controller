@@ -1,1 +1,1 @@
-add_executable(controller messages.c main.f90)
+add_executable(controller messages.h ../lib/sockets.c messages.c main.f90)

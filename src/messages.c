@@ -86,7 +86,7 @@ int communicate()
     send_coordinates();
 
     //read message from client
-    read_label(buffer);
+    read_label(qm_socket_in,buffer);
     
     printf(buffer);
     printf("\n");
@@ -108,7 +108,7 @@ int send_initialization()
   int remaining;
 
   //label this message
-  send_label("INIT");
+  send_label(qm_socket_in, "INIT");
 
   //send the nuclear coordinates
   init[0] = natoms;
@@ -116,7 +116,7 @@ int send_initialization()
   init[2] = num_mm;
   init[3] = ntypes;
 
-  send_array(init, sizeof(init));
+  send_array(qm_socket_in, init, sizeof(init));
 }
 
 
@@ -128,14 +128,14 @@ int send_coordinates()
   double coords[3*natoms];
 
   //label this message
-  send_label("COORDS");
+  send_label(qm_socket_in, "COORDS");
 
   //send the nuclear coordinates
   for (i=0; i < 3*natoms; i++) {
     coords[i] = 1.0;
     printf("coords: %i %f\n",i,coords[i]);
   }
-  send_array(coords, sizeof(coords));
+  send_array(qm_socket_in, coords, sizeof(coords));
 }
 
 
@@ -143,89 +143,5 @@ int send_coordinates()
 /* Send exit signal through the socket */
 int send_exit()
 {
-  send_label("EXIT");
-}
-
-
-
-/* Send text through the socket */
-int send_label(char *msg)
-{
-  int ret;
-  int remaining;
-
-  strcpy(buffer, msg);
-
-  char *buf = (char*)&buffer;
-  remaining = sizeof(buffer);
-  do {
-    ret = write(qm_socket_in, buf, remaining);
-    if (ret < 0) {
-      error("Could not write to socket");
-    }
-    else if (ret == 0) {
-      error("Read message of size zero");
-    }
-    else {
-      buf += ret;
-      remaining -= ret;
-    }
-    
-  }
-  while (remaining > 0);
-
-}
-
-
-
-/* Send an array through the socket */
-int send_array(void *data, int size)
-{
-  int ret;
-  int remaining;
-
-  remaining = size;
-  do {
-    ret = write(qm_socket_in, data, remaining);
-    if (ret < 0) {
-      error("Could not write to socket");
-    }
-    else if (ret == 0) {
-      error("Read message of size zero");
-    }
-    else {
-      data += ret;
-      remaining -= ret;
-    }
-    
-  }
-  while (remaining > 0);
-
-}
-
-
-
-/* Read a label from the socket */
-int read_label(char *buf)
-{
-  int ret;
-  int remaining;
-
-  remaining = BUFFER_SIZE;
-  do {
-    ret = read(qm_socket_in, buf, remaining);
-    printf("S - Read return: %i %s\n",ret,buf);
-    if (ret < 0) {
-      error("Could not read message");
-    }
-    else if (ret == 0) {
-      error("Read message of size zero");
-    }
-    else {
-      buf += ret;
-      remaining -= ret;
-    }
-  }
-  while (remaining > 0);
-
+  send_label(qm_socket_in, "EXIT");
 }
