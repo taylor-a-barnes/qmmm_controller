@@ -13,6 +13,8 @@ int num_qm;
 int num_mm;
 int ntypes;
 
+char buffer[BUFFER_SIZE];
+
 void error(char *msg)
 {
   perror(msg);
@@ -23,7 +25,6 @@ int initialize_client()
 {
   int ret;
   struct sockaddr_un driver_address;
-  char buffer[BUFFER_SIZE];
   int i;
 
   printf("In C code\n");
@@ -70,11 +71,7 @@ int initialize_client()
     }
 
     //send a message through the socket
-    strcpy(buffer, "FORCES");
-    ret = write(socket_to_driver, buffer, strlen(buffer) + 1);
-    if (ret < 0) {
-      error("Could not write to socket");
-    }
+    send_label("FORCES");
 
   }
 
@@ -87,19 +84,15 @@ int receive_initialization()
 {
   int i;
   int ret;
-  int init[4];
+  int remaining;
+  int32_t init[4]; //uses int32_t to ensure that client and server both use the same sized int
 
   receive_array(init, sizeof(init));
-
-  for (i=0; i < 4; i++) {
-    printf("received init: %i %i\n",i,init[i]);
-  }
 
   natoms = init[0];
   num_qm = init[1];
   num_mm = init[2];
   ntypes = init[3];
-
 }
 
 
@@ -125,11 +118,54 @@ int receive_coordinates()
 int receive_array(void *data, int size)
 {
   int ret;
+  int remaining;
 
-  ret = read(socket_to_driver, data, size);
-  if (ret < 0) {
-    error("Could not read message");
+  remaining = size;
+  do {
+    ret = read(socket_to_driver, data, remaining);
+    printf("Read return: %i %s\n",ret,data);
+    if (ret < 0) {
+      error("Could not read message");
+    }
+    else if (ret == 0) {
+      error("Read message of size zero");
+    }
+    else {
+      data += ret;
+      remaining -= ret;
+    }
   }
+  while (remaining > 0);
+
+}
+
+
+
+/* Send text through the socket */
+int send_label(char *msg)
+{
+  int ret;
+  int remaining;
+
+  strcpy(buffer, msg);
+
+  char *buf = (char*)&buffer;
+  remaining = sizeof(buffer);
+  do {
+    ret = write(socket_to_driver, buf, remaining);
+    if (ret < 0) {
+      error("Could not write to socket");
+    }
+    else if (ret == 0) {
+      error("Read message of size zero");
+    }
+    else {
+      buf += ret;
+      remaining -= ret;
+    }
+    
+  }
+  while (remaining > 0);
 
 }
 
@@ -139,10 +175,24 @@ int receive_array(void *data, int size)
 int read_label(char *buf)
 {
   int ret;
+  int remaining;
 
-  //read message from client
-  ret = read(socket_to_driver, buf, BUFFER_SIZE);
-  if (ret < 0) {
-    error("Could not read message");
+  remaining = BUFFER_SIZE;
+  do {
+    ret = read(socket_to_driver, buf, remaining);
+    printf("C - Read return: %i %s\n",ret,buf);
+    if (ret < 0) {
+      error("Could not read message");
+    }
+    else if (ret == 0) {
+      error("Read message of size zero");
+    }
+    else {
+      buf += ret;
+      remaining -= ret;
+    }
   }
+  while (remaining > 0);
+
+  printf("READ LABEL: %i\n",ret);
 }

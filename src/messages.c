@@ -77,33 +77,24 @@ int communicate()
   //send information about number of atoms, etc. to the client
   send_initialization();
 
-  for (i=1; i <= max_iterations+1; i++) {
+  for (i=1; i <= max_iterations; i++) {
+
     printf("\nIteration %i",i);
     printf("\n");
 
     //send a message through the socket
-    if (i <= max_iterations) {
-      send_coordinates();
-    }
-    else {
-      send_exit();
-    }
-
+    send_coordinates();
 
     //read message from client
-    /*
-    ret = read(qm_socket_in, buffer, BUFFER_SIZE);
-    if (ret < 0) {
-      error("Could not read message");
-    }
-    */
     read_label(buffer);
     
     printf(buffer);
     printf("\n");
-    
 
   }
+
+  //tell the client to exit
+  send_exit();
 
 }
 
@@ -112,10 +103,12 @@ int communicate()
 /* Send initialization information through the socket */
 int send_initialization()
 {
-  int init[4];
+  int32_t init[4]; //uses int32_t to ensure that client and server both use the same sized int
+  int ret;
+  int remaining;
 
   //label this message
-  send_text("INIT");
+  send_label("INIT");
 
   //send the nuclear coordinates
   init[0] = natoms;
@@ -135,7 +128,7 @@ int send_coordinates()
   double coords[3*natoms];
 
   //label this message
-  send_text("COORDS");
+  send_label("COORDS");
 
   //send the nuclear coordinates
   for (i=0; i < 3*natoms; i++) {
@@ -150,21 +143,37 @@ int send_coordinates()
 /* Send exit signal through the socket */
 int send_exit()
 {
-  send_text("EXIT");
+  send_label("EXIT");
 }
 
 
 
 /* Send text through the socket */
-int send_text(char *msg)
+int send_label(char *msg)
 {
   int ret;
+  int remaining;
 
   strcpy(buffer, msg);
-  ret = write(qm_socket_in, buffer, strlen(buffer) + 1);
-  if (ret < 0) {
-    error("Could not write to socket");
+
+  char *buf = (char*)&buffer;
+  remaining = sizeof(buffer);
+  do {
+    ret = write(qm_socket_in, buf, remaining);
+    if (ret < 0) {
+      error("Could not write to socket");
+    }
+    else if (ret == 0) {
+      error("Read message of size zero");
+    }
+    else {
+      buf += ret;
+      remaining -= ret;
+    }
+    
   }
+  while (remaining > 0);
+
 }
 
 
@@ -173,13 +182,25 @@ int send_text(char *msg)
 int send_array(void *data, int size)
 {
   int ret;
+  int remaining;
 
-  printf("len: %i",sizeof(data));
-
-  ret = write(qm_socket_in, data, size);
-  if (ret < 0) {
-    error("Could not write to socket");
+  remaining = size;
+  do {
+    ret = write(qm_socket_in, data, remaining);
+    if (ret < 0) {
+      error("Could not write to socket");
+    }
+    else if (ret == 0) {
+      error("Read message of size zero");
+    }
+    else {
+      data += ret;
+      remaining -= ret;
+    }
+    
   }
+  while (remaining > 0);
+
 }
 
 
@@ -188,10 +209,23 @@ int send_array(void *data, int size)
 int read_label(char *buf)
 {
   int ret;
+  int remaining;
 
-  //read message from client
-  ret = read(qm_socket_in, buf, BUFFER_SIZE);
-  if (ret < 0) {
-    error("Could not read message");
+  remaining = BUFFER_SIZE;
+  do {
+    ret = read(qm_socket_in, buf, remaining);
+    printf("S - Read return: %i %s\n",ret,buf);
+    if (ret < 0) {
+      error("Could not read message");
+    }
+    else if (ret == 0) {
+      error("Read message of size zero");
+    }
+    else {
+      buf += ret;
+      remaining -= ret;
+    }
   }
+  while (remaining > 0);
+
 }
