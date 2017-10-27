@@ -91,3 +91,30 @@ int send_array(int socket, void *data, int size)
   while (remaining > 0);
 
 }
+
+
+
+/* Read an array from the socket */
+int receive_array(int socket, void *data, int size)
+{
+  int ret;
+  int remaining;
+
+  remaining = size;
+  do {
+    ret = read(socket, data, remaining);
+    printf("Read return: %i %s\n",ret,data);
+    if (ret < 0) {
+      error("Could not read message");
+    }
+    else if (ret == 0) {
+      error("Read message of size zero");
+    }
+    else {
+      data += ret;
+      remaining -= ret;
+    }
+  }
+  while (remaining > 0);
+
+}

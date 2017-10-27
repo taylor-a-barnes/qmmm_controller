@@ -46,7 +46,7 @@ int initialize_client()
   }
 
   //read initialization information
-  read_label(buffer);
+  read_label(socket_to_driver, buffer);
   if( strcmp(buffer,"INIT") == 0 ) {
     receive_initialization();
   }
@@ -57,7 +57,7 @@ int initialize_client()
   for (;;) {
 
     //read message from client
-    read_label(buffer);
+    read_label(socket_to_driver, buffer);
 
     printf("Buffer: %s",buffer);
     printf("\n");
@@ -71,7 +71,7 @@ int initialize_client()
     }
 
     //send a message through the socket
-    send_label("FORCES");
+    send_label(socket_to_driver, "FORCES");
 
   }
 
@@ -87,7 +87,7 @@ int receive_initialization()
   int remaining;
   int32_t init[4]; //uses int32_t to ensure that client and server both use the same sized int
 
-  receive_array(init, sizeof(init));
+  receive_array(socket_to_driver, init, sizeof(init));
 
   natoms = init[0];
   num_qm = init[1];
@@ -104,95 +104,10 @@ int receive_coordinates()
   int ret;
   double coords[3*natoms];
 
-  receive_array(coords, sizeof(coords));
+  receive_array(socket_to_driver, coords, sizeof(coords));
 
   for (i=0; i < 3*natoms; i++) {
     printf("received coords: %i %f\n",i,coords[i]);
   }
 
-}
-
-
-
-/* Read an array from the socket */
-int receive_array(void *data, int size)
-{
-  int ret;
-  int remaining;
-
-  remaining = size;
-  do {
-    ret = read(socket_to_driver, data, remaining);
-    printf("Read return: %i %s\n",ret,data);
-    if (ret < 0) {
-      error("Could not read message");
-    }
-    else if (ret == 0) {
-      error("Read message of size zero");
-    }
-    else {
-      data += ret;
-      remaining -= ret;
-    }
-  }
-  while (remaining > 0);
-
-}
-
-
-
-/* Send text through the socket */
-int send_label(char *msg)
-{
-  int ret;
-  int remaining;
-
-  strcpy(buffer, msg);
-
-  char *buf = (char*)&buffer;
-  remaining = sizeof(buffer);
-  do {
-    ret = write(socket_to_driver, buf, remaining);
-    if (ret < 0) {
-      error("Could not write to socket");
-    }
-    else if (ret == 0) {
-      error("Read message of size zero");
-    }
-    else {
-      buf += ret;
-      remaining -= ret;
-    }
-    
-  }
-  while (remaining > 0);
-
-}
-
-
-
-/* Read a label from the socket */
-int read_label(char *buf)
-{
-  int ret;
-  int remaining;
-
-  remaining = BUFFER_SIZE;
-  do {
-    ret = read(socket_to_driver, buf, remaining);
-    printf("C - Read return: %i %s\n",ret,buf);
-    if (ret < 0) {
-      error("Could not read message");
-    }
-    else if (ret == 0) {
-      error("Read message of size zero");
-    }
-    else {
-      buf += ret;
-      remaining -= ret;
-    }
-  }
-  while (remaining > 0);
-
-  printf("READ LABEL: %i\n",ret);
 }
