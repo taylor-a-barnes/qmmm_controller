@@ -49,7 +49,6 @@ int read_label(int socket, char *buf)
   remaining = BUFFER_SIZE;
   do {
     ret = read(socket, buf, remaining);
-    printf("S - Read return: %i %s\n",ret,buf);
     if (ret < 0) {
       error("Could not read message");
     }
@@ -103,7 +102,6 @@ int receive_array(int socket, void *data, int size)
   remaining = size;
   do {
     ret = read(socket, data, remaining);
-    printf("Read return: %i %s\n",ret,data);
     if (ret < 0) {
       error("Could not read message");
     }

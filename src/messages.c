@@ -26,6 +26,13 @@ float cellxy = 0.0;
 float cellxz = 0.0;
 float cellyz = 0.0;
 
+double *qm_coord;
+double *qm_charge;
+double *mm_charge_all;
+double *mm_coord_all;
+int *mm_mask_all;
+int *type;
+int *mass;
 
 void error(char *msg)
 {
@@ -68,7 +75,13 @@ int initialize_server()
   }
 
   //initialize arrays for QM communication
-  
+  qm_coord = malloc( (3*num_qm)*sizeof(double) );
+  qm_charge = malloc( num_qm*sizeof(double) );
+  mm_charge_all = malloc( natoms*sizeof(double) );
+  mm_coord_all = malloc( (3*natoms)*sizeof(double) );
+  mm_mask_all = malloc( natoms*sizeof(int) );
+  type = malloc( natoms*sizeof(int) );
+  mass = malloc( (ntypes+1)*sizeof(int) );
   
 }
 
@@ -172,7 +185,17 @@ int send_coordinates()
     coords[i] = 1.0;
     printf("coords: %i %f\n",i,coords[i]);
   }
+  printf("size of coords: %i\n",sizeof(coords));
   send_array(qm_socket_in, coords, sizeof(coords));
+
+  printf("size of qm_coords: %i\n",(3*num_qm)*sizeof(double));
+  send_array(qm_socket_in, qm_coord, (3*num_qm)*sizeof(double));
+  send_array(qm_socket_in, qm_charge, (num_qm)*sizeof(double));
+  send_array(qm_socket_in, mm_charge_all, (natoms)*sizeof(double));
+  send_array(qm_socket_in, mm_coord_all, (3*natoms)*sizeof(double));
+  send_array(qm_socket_in, mm_mask_all, (natoms)*sizeof(int));
+  send_array(qm_socket_in, type, (natoms)*sizeof(int));
+  send_array(qm_socket_in, mass, (ntypes+1)*sizeof(int));
 }
 
 

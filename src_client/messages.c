@@ -23,6 +23,14 @@ double cellxy;
 double cellxz;
 double cellyz;
 
+double *qm_coord;
+double *qm_charge;
+double *mm_charge_all;
+double *mm_coord_all;
+int *mm_mask_all;
+int *type;
+int *mass;
+
 char buffer[BUFFER_SIZE];
 
 void error(char *msg)
@@ -64,6 +72,15 @@ int initialize_client()
     error("Initial message from server is invalid");
   }
 
+  //read information about cell dimensions
+  read_label(socket_to_driver, buffer);
+  if ( strcmp(buffer,"CELL") == 0 ) {
+    receive_cell();
+  }
+  else {
+    error("Expected cell information from driver");
+  }
+
   for (;;) {
 
     //read message from client
@@ -78,6 +95,9 @@ int initialize_client()
     else if ( strcmp(buffer,"EXIT") == 0 ) {
       printf("Client exiting\n");
       exit(0);
+    }
+    else {
+      error("Label from driver not recognized");
     }
 
     //send a message through the socket
@@ -100,6 +120,15 @@ int receive_initialization()
   num_qm = init[1];
   num_mm = init[2];
   ntypes = init[3];
+
+  //initialize arrays for QM communication
+  qm_coord = malloc( (3*num_qm)*sizeof(double) );
+  qm_charge = malloc( num_qm*sizeof(double) );
+  mm_charge_all = malloc( natoms*sizeof(double) );
+  mm_coord_all = malloc( (3*natoms)*sizeof(double) );
+  mm_mask_all = malloc( natoms*sizeof(int) );
+  type = malloc( natoms*sizeof(int) );
+  mass = malloc( (ntypes+1)*sizeof(int) );
 }
 
 
@@ -137,4 +166,12 @@ int receive_coordinates()
     printf("received coords: %i %f\n",i,coords[i]);
   }
 
+  printf("c - size of qm_coords: %i\n",(3*num_qm)*sizeof(double));
+  receive_array(socket_to_driver, qm_coord, (3*num_qm)*sizeof(double));
+  receive_array(socket_to_driver, qm_charge, (num_qm)*sizeof(double));
+  receive_array(socket_to_driver, mm_charge_all, (natoms)*sizeof(double));
+  receive_array(socket_to_driver, mm_coord_all, (3*natoms)*sizeof(double));
+  receive_array(socket_to_driver, mm_mask_all, (natoms)*sizeof(int));
+  receive_array(socket_to_driver, type, (natoms)*sizeof(int));
+  receive_array(socket_to_driver, mass, (ntypes+1)*sizeof(int));
 }
