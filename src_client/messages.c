@@ -13,6 +13,16 @@ int num_qm;
 int num_mm;
 int ntypes;
 
+double boxlo0;
+double boxlo1;
+double boxlo3;
+double boxhi0;
+double boxhi1;
+double boxhi2;
+double cellxy;
+double cellxz;
+double cellyz;
+
 char buffer[BUFFER_SIZE];
 
 void error(char *msg)
@@ -79,12 +89,9 @@ int initialize_client()
 
 
 
-/* Read the initialization information from the socket */
+/* Receive the initialization information from the socket */
 int receive_initialization()
 {
-  int i;
-  int ret;
-  int remaining;
   int32_t init[4]; //uses int32_t to ensure that client and server both use the same sized int
 
   receive_array(socket_to_driver, init, sizeof(init));
@@ -93,6 +100,26 @@ int receive_initialization()
   num_qm = init[1];
   num_mm = init[2];
   ntypes = init[3];
+}
+
+
+
+/* Receive the cell dimensions */
+int receive_cell()
+{
+  double celldata[9];
+
+  receive_array(socket_to_driver, celldata, sizeof(celldata));
+
+  boxlo0 = celldata[0];
+  boxlo1 = celldata[1];
+  boxlo3 = celldata[2];
+  boxhi0 = celldata[3];
+  boxhi1 = celldata[4];
+  boxhi2 = celldata[5];
+  cellxy = celldata[6];
+  cellxz = celldata[7];
+  cellyz = celldata[8];
 }
 
 

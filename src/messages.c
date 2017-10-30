@@ -12,10 +12,19 @@ struct sockaddr_un qm_server, qm_client;
 char buffer[BUFFER_SIZE];
 
 int natoms = 3;
-int num_qm = 0;
-int num_mm = 0;
-int ntypes = 0;
+int num_qm = 2;
+int num_mm = 2;
+int ntypes = 2;
 
+float boxlo0 = 0.0;
+float boxlo1 = 0.0;
+float boxlo2 = 0.0;
+float boxhi0 = 0.0;
+float boxhi1 = 0.0;
+float boxhi2 = 0.0;
+float cellxy = 0.0;
+float cellxz = 0.0;
+float cellyz = 0.0;
 
 
 void error(char *msg)
@@ -57,6 +66,9 @@ int initialize_server()
   if (ret < 0) {
     error("Could not listen");
   }
+
+  //initialize arrays for QM communication
+  
   
 }
 
@@ -76,6 +88,9 @@ int communicate()
 
   //send information about number of atoms, etc. to the client
   send_initialization();
+
+  //send information about the cell dimensions
+  send_cell();
 
   for (i=1; i <= max_iterations; i++) {
 
@@ -104,8 +119,6 @@ int communicate()
 int send_initialization()
 {
   int32_t init[4]; //uses int32_t to ensure that client and server both use the same sized int
-  int ret;
-  int remaining;
 
   //label this message
   send_label(qm_socket_in, "INIT");
@@ -117,6 +130,30 @@ int send_initialization()
   init[3] = ntypes;
 
   send_array(qm_socket_in, init, sizeof(init));
+}
+
+
+
+/* Send cell dimensions */
+int send_cell()
+{
+  double celldata[9];
+
+  //label this message
+  send_label(qm_socket_in, "CELL");
+
+  //send the cell data
+  celldata[0] = boxlo0;
+  celldata[1] = boxlo1;
+  celldata[2] = boxlo2;
+  celldata[3] = boxhi0;
+  celldata[4] = boxhi1;
+  celldata[5] = boxhi2;
+  celldata[6] = cellxy;
+  celldata[7] = cellxz;
+  celldata[8] = cellyz;
+
+  send_array(qm_socket_in, celldata, sizeof(celldata));
 }
 
 
