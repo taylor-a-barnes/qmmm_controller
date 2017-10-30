@@ -34,6 +34,9 @@ int *mm_mask_all;
 int *type;
 int *mass;
 
+double *qm_force;
+double *mm_force_all;
+
 void error(char *msg)
 {
   perror(msg);
@@ -82,6 +85,8 @@ int initialize_server()
   mm_mask_all = malloc( natoms*sizeof(int) );
   type = malloc( natoms*sizeof(int) );
   mass = malloc( (ntypes+1)*sizeof(int) );
+  qm_force = malloc( (3*num_qm)*sizeof(double) );
+  mm_force_all = malloc( (3*natoms)*sizeof(double) );
   
 }
 
@@ -116,6 +121,13 @@ int communicate()
     //read message from client
     read_label(qm_socket_in,buffer);
     
+    if ( strcmp(buffer,"FORCES") == 0 ) {
+      receive_forces();
+    }
+    else {
+      error("Label from client not recognized");
+    }
+
     printf(buffer);
     printf("\n");
 
@@ -204,4 +216,13 @@ int send_coordinates()
 int send_exit()
 {
   send_label(qm_socket_in, "EXIT");
+}
+
+
+
+/* Receive the forces from the socket */
+int receive_forces()
+{
+  receive_array(qm_socket_in, qm_force, (3*num_qm)*sizeof(double));
+  receive_array(qm_socket_in, mm_force_all, (3*natoms)*sizeof(double));
 }

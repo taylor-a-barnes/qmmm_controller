@@ -31,6 +31,9 @@ int *mm_mask_all;
 int *type;
 int *mass;
 
+double *qm_force;
+double *mm_force_all;
+
 char buffer[BUFFER_SIZE];
 
 void error(char *msg)
@@ -101,7 +104,7 @@ int initialize_client()
     }
 
     //send a message through the socket
-    send_label(socket_to_driver, "FORCES");
+    send_forces();
 
   }
 
@@ -129,6 +132,8 @@ int receive_initialization()
   mm_mask_all = malloc( natoms*sizeof(int) );
   type = malloc( natoms*sizeof(int) );
   mass = malloc( (ntypes+1)*sizeof(int) );
+  qm_force = malloc( (3*num_qm)*sizeof(double) );
+  mm_force_all = malloc( (3*natoms)*sizeof(double) );
 }
 
 
@@ -157,7 +162,6 @@ int receive_cell()
 int receive_coordinates()
 {
   int i;
-  int ret;
   double coords[3*natoms];
 
   receive_array(socket_to_driver, coords, sizeof(coords));
@@ -174,4 +178,15 @@ int receive_coordinates()
   receive_array(socket_to_driver, mm_mask_all, (natoms)*sizeof(int));
   receive_array(socket_to_driver, type, (natoms)*sizeof(int));
   receive_array(socket_to_driver, mass, (ntypes+1)*sizeof(int));
+}
+
+
+
+int send_forces()
+{
+  send_label(socket_to_driver, "FORCES");
+
+  //send the arrays that contain the qm forces
+  send_array(socket_to_driver, qm_force, (3*num_qm)*sizeof(double));
+  send_array(socket_to_driver, mm_force_all, (3*natoms)*sizeof(double));
 }
