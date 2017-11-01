@@ -1,1 +1,1 @@
-add_executable(client ../lib/sockets.c messages.c client.f90)
+add_executable(client ../lib/sockets.cpp messages.cpp client.f90)

@@ -1,4 +1,5 @@
 /* Library for sending and receiving messagess through sockets */
+#include <cstdlib>
 #include <stdio.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
@@ -7,6 +8,15 @@
 #include <errno.h>
 #include <unistd.h>
 #include "sockets.h"
+
+
+/* Print an error message */
+void error(char *msg)
+{
+  perror(msg);
+  exit(1);
+}
+
 
 
 /* Send text through the socket */

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(Controller
-	LANGUAGES C Fortran)
+	LANGUAGES C CXX Fortran)
 
 #set(MY_VARIABLE "This is a variable")
 

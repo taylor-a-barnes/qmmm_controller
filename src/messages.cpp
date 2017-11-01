@@ -1,49 +1,14 @@
 /* Server code for the QM/MM driver */
-#include <stdio.h>
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <netinet/in.h>
-#include <errno.h>
 #include "messages.h"
 
-int qm_socket, qm_socket_in;
-int mm_socket, mm_socket_in;
-struct sockaddr_un qm_server, qm_client;
-char buffer[BUFFER_SIZE];
 
-int natoms = 3;
-int num_qm = 2;
-int num_mm = 2;
-int ntypes = 2;
-
-float boxlo0 = 0.0;
-float boxlo1 = 0.0;
-float boxlo2 = 0.0;
-float boxhi0 = 0.0;
-float boxhi1 = 0.0;
-float boxhi2 = 0.0;
-float cellxy = 0.0;
-float cellxz = 0.0;
-float cellyz = 0.0;
-
-double *qm_coord;
-double *qm_charge;
-double *mm_charge_all;
-double *mm_coord_all;
-int *mm_mask_all;
-int *type;
-int *mass;
-
-double *qm_force;
-double *mm_force_all;
-
+/*
 void error(char *msg)
 {
   perror(msg);
   exit(1);
 }
-
+*/
 
 
 /* Initialize everything necessary for the driver to act as a server */
@@ -100,15 +65,15 @@ int initialize_socket(char *name)
 int initialize_arrays()
 {
   //initialize arrays for QM communication
-  qm_coord = malloc( (3*num_qm)*sizeof(double) );
-  qm_charge = malloc( num_qm*sizeof(double) );
-  mm_charge_all = malloc( natoms*sizeof(double) );
-  mm_coord_all = malloc( (3*natoms)*sizeof(double) );
-  mm_mask_all = malloc( natoms*sizeof(int) );
-  type = malloc( natoms*sizeof(int) );
-  mass = malloc( (ntypes+1)*sizeof(int) );
-  qm_force = malloc( (3*num_qm)*sizeof(double) );
-  mm_force_all = malloc( (3*natoms)*sizeof(double) );
+  qm_coord = ( double* )malloc( 3*num_qm );
+  qm_charge = ( double* )malloc( num_qm );
+  mm_charge_all = ( double* )malloc( natoms );
+  mm_coord_all = ( double* )malloc( 3*natoms );
+  mm_mask_all = ( int* )malloc( natoms );
+  type = ( int* )malloc( natoms );
+  mass = ( int* )malloc( ntypes+1 );
+  qm_force = ( double* )malloc( 3*num_qm );
+  mm_force_all = ( double* )malloc( 3*natoms );
   
 }
 
