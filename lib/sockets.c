@@ -5,8 +5,8 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <errno.h>
-#include "messages.h"
-
+#include <unistd.h>
+#include "sockets.h"
 
 
 /* Send text through the socket */

@@ -8,6 +8,7 @@
 #include "messages.h"
 
 int qm_socket, qm_socket_in;
+int mm_socket, mm_socket_in;
 struct sockaddr_un qm_server, qm_client;
 char buffer[BUFFER_SIZE];
 
@@ -45,38 +46,59 @@ void error(char *msg)
 
 
 
+/* Initialize everything necessary for the driver to act as a server */
 int initialize_server()
 {
+  qm_socket = initialize_socket(SOCKET_NAME);
+  
+  mm_socket = initialize_socket("./mm_main.socket");
+
+  initialize_arrays();
+}
+
+
+
+/* Initialize a socket */
+int initialize_socket(char *name)
+{
   int ret;
+  int sock;
 
   printf("In C code\n");
 
   //unlink the socket, in case the program previously exited unexpectedly
-  unlink(SOCKET_NAME);
+  unlink(name);
 
   //create the socket
-  qm_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (qm_socket < 0) {
+  sock = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (sock < 0) {
     error("Could not create socket");
   }
-  printf("Here is the socket: %i\n",qm_socket);
+  printf("Here is the socket: %i\n",sock);
 
   //create the socket address
   memset(&qm_server, 0, sizeof(struct sockaddr_un));
   qm_server.sun_family = AF_UNIX;
-  strncpy(qm_server.sun_path, SOCKET_NAME, sizeof(qm_server.sun_path) - 1);
-  ret = bind(qm_socket, (const struct sockaddr *) &qm_server, sizeof(struct sockaddr_un));
+  strncpy(qm_server.sun_path, name, sizeof(qm_server.sun_path) - 1);
+  ret = bind(sock, (const struct sockaddr *) &qm_server, sizeof(struct sockaddr_un));
   if (ret < 0) {
     error("Could not bind socket");
   }
 
   //start listening
   // the second argument is the backlog size
-  ret = listen(qm_socket, 20);
+  ret = listen(sock, 20);
   if (ret < 0) {
     error("Could not listen");
   }
 
+  return sock;
+}
+
+
+
+int initialize_arrays()
+{
   //initialize arrays for QM communication
   qm_coord = malloc( (3*num_qm)*sizeof(double) );
   qm_charge = malloc( num_qm*sizeof(double) );
@@ -88,6 +110,13 @@ int initialize_server()
   qm_force = malloc( (3*num_qm)*sizeof(double) );
   mm_force_all = malloc( (3*natoms)*sizeof(double) );
   
+}
+
+
+
+int run_simulation()
+{
+  printf("Running the simulation\n");
 }
 
 
