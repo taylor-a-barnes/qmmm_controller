@@ -182,6 +182,11 @@ int receive_initialization()
   num_mm = init[2];
   ntypes = init[3];
 
+  printf("natoms: %i\n",natoms);
+  printf("num_qm: %i\n",num_qm);
+  printf("num_mm: %i\n",num_mm);
+  printf("ntypes: %i\n",ntypes);
+
   //initialize arrays for QM communication
   initialize_arrays();
 }

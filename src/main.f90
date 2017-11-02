@@ -31,17 +31,17 @@ program driver
   ret = initialize_server__()
 
   !start the client
-  ret = initialize_arrays__()
-  call execute_command_line("/project/projectdirs/m1944/tabarnes/edison/qmmm/pipes/build/src_client/client", WAIT=.FALSE.)
+  !ret = initialize_arrays__()
+  !call execute_command_line("/project/projectdirs/m1944/tabarnes/edison/qmmm/pipes/build/src_client/client", WAIT=.FALSE.)
 
   !start communicating with the client
-  ret = communicate__()
+  !ret = communicate__()
 
   !start running the simulation
-  !call execute_command_line("srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_main/lib/qmmm/pwqmmm.x qmmm.inp > input.out", WAIT=.FALSE.)
-  !ret = run_simulation__()
+  call execute_command_line("srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_main/lib/qmmm/pwqmmm.x qmmm.inp > input.out", WAIT=.FALSE.)
+  ret = run_simulation__()
 
   !sleep, to ensure that the LAMMPS call completes
-  !CALL SLEEP(20)
+  CALL SLEEP(20)
 
 end program driver
