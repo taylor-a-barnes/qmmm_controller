@@ -22,7 +22,8 @@ int initialize_socket(char*);
 int initialize_arrays();
 int run_simulation();
 int communicate();
-int send_initialization();
+int send_initialization(int);
+int receive_initialization();
 int send_cell();
 int send_coordinates();
 int send_exit();
@@ -65,6 +66,9 @@ double *mm_force_all;
 extern "C" {
   int initialize_server__() {
     return initialize_server();
+  }
+  int initialize_arrays__() {
+    return initialize_arrays();
   }
   int communicate__() {
     return communicate();

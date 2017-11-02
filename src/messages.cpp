@@ -18,7 +18,7 @@ int initialize_server()
   
   mm_socket = initialize_socket("./mm_main.socket");
 
-  initialize_arrays();
+  //initialize_arrays();
 }
 
 
@@ -82,6 +82,23 @@ int initialize_arrays()
 int run_simulation()
 {
   printf("Running the simulation\n");
+
+  //accept a connection
+  mm_socket_in = accept(mm_socket, NULL, NULL);
+  if (mm_socket_in < 0) {
+    error("Could not accept connection");
+  }
+
+  //read initialization information
+  read_label(mm_socket_in, buffer);
+  if( strcmp(buffer,"INIT") == 0 ) {
+    receive_initialization();
+  }
+  else {
+    error("Initial message from LAMMPS is invalid");
+  }
+
+  printf("Number of atoms: %i",num_qm);
 }
 
 
@@ -99,7 +116,7 @@ int communicate()
   }
 
   //send information about number of atoms, etc. to the client
-  send_initialization();
+  send_initialization(qm_socket_in);
 
   //send information about the cell dimensions
   send_cell();
@@ -135,12 +152,12 @@ int communicate()
 
 
 /* Send initialization information through the socket */
-int send_initialization()
+int send_initialization(int sock)
 {
   int32_t init[4]; //uses int32_t to ensure that client and server both use the same sized int
 
   //label this message
-  send_label(qm_socket_in, "INIT");
+  send_label(sock, "INIT");
 
   //send the nuclear coordinates
   init[0] = natoms;
@@ -148,7 +165,25 @@ int send_initialization()
   init[2] = num_mm;
   init[3] = ntypes;
 
-  send_array(qm_socket_in, init, sizeof(init));
+  send_array(sock, init, sizeof(init));
+}
+
+
+
+/* Receive initialization information through the socket */
+int receive_initialization()
+{
+  int32_t init[4]; //uses int32_t to ensure that client and server both use the same sized int
+
+  receive_array(mm_socket_in, init, sizeof(init));
+
+  natoms = init[0];
+  num_qm = init[1];
+  num_mm = init[2];
+  ntypes = init[3];
+
+  //initialize arrays for QM communication
+  initialize_arrays();
 }
 
 

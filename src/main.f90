@@ -11,6 +11,11 @@ program driver
        integer(kind=c_int) :: initialize_server__
      end function initialize_server__
 
+     function initialize_arrays__() bind(c, name="initialize_arrays__")
+       use, intrinsic :: iso_c_binding
+       integer(kind=c_int) :: initialize_arrays__
+     end function initialize_arrays__
+
      function communicate__() bind(c, name="communicate__")
        use, intrinsic :: iso_c_binding
        integer(kind=c_int) :: communicate__
@@ -26,6 +31,7 @@ program driver
   ret = initialize_server__()
 
   !start the client
+  ret = initialize_arrays__()
   call execute_command_line("/project/projectdirs/m1944/tabarnes/edison/qmmm/pipes/build/src_client/client", WAIT=.FALSE.)
 
   !start communicating with the client

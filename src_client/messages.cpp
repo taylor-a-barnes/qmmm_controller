@@ -1,5 +1,6 @@
 #include "messages.h"
 
+using namespace QMMM_CLIENT;
 
 /*
 void error(char *msg)
@@ -9,7 +10,12 @@ void error(char *msg)
 }
 */
 
-int initialize_client()
+QMMMClient::QMMMClient()
+{
+  
+}
+
+int QMMMClient::initialize_client()
 {
   int ret;
   struct sockaddr_un driver_address;
@@ -80,7 +86,7 @@ int initialize_client()
 
 
 /* Receive the initialization information from the socket */
-int receive_initialization()
+int QMMMClient::receive_initialization()
 {
   int32_t init[4]; //uses int32_t to ensure that client and server both use the same sized int
 
@@ -107,7 +113,7 @@ int receive_initialization()
 
 
 /* Receive the cell dimensions */
-int receive_cell()
+int QMMMClient::receive_cell()
 {
   double celldata[9];
 
@@ -127,7 +133,7 @@ int receive_cell()
 
 
 /* Read the coordinates from the socket */
-int receive_coordinates()
+int QMMMClient::receive_coordinates()
 {
   int i;
   double coords[3*natoms];
@@ -150,7 +156,7 @@ int receive_coordinates()
 
 
 
-int send_forces()
+int QMMMClient::send_forces()
 {
   send_label(socket_to_driver, "FORCES");
 
