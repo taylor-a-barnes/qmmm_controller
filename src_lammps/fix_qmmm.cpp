@@ -506,6 +506,7 @@ void FixQMMM::exchange_positions()
       MPI_Send(type, natoms, MPI_INT, 1, QMMM_TAG_TYPE, qm_comm);
       MPI_Send(mass, ntypes+1, MPI_DOUBLE, 1, QMMM_TAG_MASS, qm_comm);
       */
+      client.send_coordinates(qm_coord, qm_charge, mm_charge_all, mm_coord_all, mm_mask_all, type, mass);
       //>>>
 
       /* to MM slave code */

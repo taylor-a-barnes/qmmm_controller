@@ -71,7 +71,7 @@ int initialize_arrays()
   mm_coord_all = ( double* )malloc( 3*natoms );
   mm_mask_all = ( int* )malloc( natoms );
   type = ( int* )malloc( natoms );
-  mass = ( int* )malloc( ntypes+1 );
+  mass = ( double* )malloc( ntypes+1 );
   qm_force = ( double* )malloc( 3*num_qm );
   mm_force_all = ( double* )malloc( 3*natoms );
   
@@ -114,6 +114,9 @@ int run_simulation()
     printf("Read new label: %s",buffer);
     if( strcmp(buffer,"CELL") == 0 ) {
       receive_cell(mm_socket_in);
+    }
+    else if( strcmp(buffer,"COORDS") == 0 ) {
+      receive_coordinates(mm_socket_in);
     }
     else {
       printf("Received unexpected label: %s",buffer);
@@ -285,7 +288,21 @@ int send_coordinates()
   send_array(qm_socket_in, mm_coord_all, (3*natoms)*sizeof(double));
   send_array(qm_socket_in, mm_mask_all, (natoms)*sizeof(int));
   send_array(qm_socket_in, type, (natoms)*sizeof(int));
-  send_array(qm_socket_in, mass, (ntypes+1)*sizeof(int));
+  send_array(qm_socket_in, mass, (ntypes+1)*sizeof(double));
+}
+
+
+
+/* Receive atomic positions through the socket */
+int receive_coordinates(int sock)
+{
+  receive_array(sock, qm_coord, (3*num_qm)*sizeof(double));
+  receive_array(sock, qm_charge, (num_qm)*sizeof(double));
+  receive_array(sock, mm_charge_all, (natoms)*sizeof(double));
+  receive_array(sock, mm_coord_all, (3*natoms)*sizeof(double));
+  receive_array(sock, mm_mask_all, (natoms)*sizeof(int));
+  receive_array(sock, type, (natoms)*sizeof(int));
+  receive_array(sock, mass, (ntypes+1)*sizeof(double));
 }
 
 

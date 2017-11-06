@@ -27,6 +27,7 @@ int receive_initialization();
 int send_cell();
 int receive_cell(int);
 int send_coordinates();
+int receive_coordinates(int);
 int send_exit();
 int receive_forces();
 
@@ -56,7 +57,7 @@ double *mm_charge_all;
 double *mm_coord_all;
 int *mm_mask_all;
 int *type;
-int *mass;
+double *mass;
 
 double *qm_force;
 double *mm_force_all;

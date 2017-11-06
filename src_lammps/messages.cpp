@@ -141,6 +141,37 @@ int QMMMClient::receive_cell()
 
 
 
+/* Receive the coordinates from the socket */
+int QMMMClient::receive_coordinates(double* qm_coord__, double* qm_charge__, double* mm_charge_all__, double* mm_coord_all__, int* mm_mask_all__, int* type__, double* mass__)
+{
+  receive_array(socket_to_driver, qm_coord__, (3*num_qm)*sizeof(double));
+  receive_array(socket_to_driver, qm_charge__, (num_qm)*sizeof(double));
+  receive_array(socket_to_driver, mm_charge_all__, (natoms)*sizeof(double));
+  receive_array(socket_to_driver, mm_coord_all__, (3*natoms)*sizeof(double));
+  receive_array(socket_to_driver, mm_mask_all__, (natoms)*sizeof(int));
+  receive_array(socket_to_driver, type__, (natoms)*sizeof(int));
+  receive_array(socket_to_driver, mass__, (ntypes+1)*sizeof(double));
+}
+
+
+
+/* Send the coordinates from the socket */
+int QMMMClient::send_coordinates(double* qm_coord__, double* qm_charge__, double* mm_charge_all__, double* mm_coord_all__, int* mm_mask_all__, int* type__, double* mass__)
+{
+  //label this message
+  send_label(socket_to_driver, "COORDS");
+
+  send_array(socket_to_driver, qm_coord__, (3*num_qm)*sizeof(double));
+  send_array(socket_to_driver, qm_charge__, (num_qm)*sizeof(double));
+  send_array(socket_to_driver, mm_charge_all__, (natoms)*sizeof(double));
+  send_array(socket_to_driver, mm_coord_all__, (3*natoms)*sizeof(double));
+  send_array(socket_to_driver, mm_mask_all__, (natoms)*sizeof(int));
+  send_array(socket_to_driver, type__, (natoms)*sizeof(int));
+  send_array(socket_to_driver, mass__, (ntypes+1)*sizeof(double));
+}
+
+
+
 /* Read the coordinates from the socket */
 int QMMMClient::receive_coordinates()
 {
@@ -238,35 +269,6 @@ int QMMMClient::send_cell()
   celldata[8] = cellyz;
 
   send_array(socket_to_driver, celldata, sizeof(celldata));
-}
-
-
-
-/* Send atomic positions through the socket */
-int QMMMClient::send_coordinates()
-{
-  int i;
-  double coords[3*natoms];
-
-  //label this message
-  send_label(socket_to_driver, "COORDS");
-
-  //send the nuclear coordinates
-  for (i=0; i < 3*natoms; i++) {
-    coords[i] = 1.0;
-    printf("coords: %i %f\n",i,coords[i]);
-  }
-  printf("size of coords: %i\n",sizeof(coords));
-  send_array(socket_to_driver, coords, sizeof(coords));
-
-  printf("size of qm_coords: %i\n",(3*num_qm)*sizeof(double));
-  send_array(socket_to_driver, qm_coord, (3*num_qm)*sizeof(double));
-  send_array(socket_to_driver, qm_charge, (num_qm)*sizeof(double));
-  send_array(socket_to_driver, mm_charge_all, (natoms)*sizeof(double));
-  send_array(socket_to_driver, mm_coord_all, (3*natoms)*sizeof(double));
-  send_array(socket_to_driver, mm_mask_all, (natoms)*sizeof(int));
-  send_array(socket_to_driver, type, (natoms)*sizeof(int));
-  send_array(socket_to_driver, mass, (ntypes+1)*sizeof(int));
 }
 
 

@@ -104,7 +104,7 @@ int QMMMClient::receive_initialization()
   mm_coord_all = ( double* )malloc( 3*natoms );
   mm_mask_all = ( int* )malloc( natoms );
   type = ( int* )malloc( natoms );
-  mass = ( int* )malloc( ntypes+1 );
+  mass = ( double* )malloc( ntypes+1 );
   qm_force = ( double* )malloc( 3*num_qm );
   mm_force_all = ( double* )malloc( 3*natoms );
 
@@ -151,7 +151,7 @@ int QMMMClient::receive_coordinates()
   receive_array(socket_to_driver, mm_coord_all, (3*natoms)*sizeof(double));
   receive_array(socket_to_driver, mm_mask_all, (natoms)*sizeof(int));
   receive_array(socket_to_driver, type, (natoms)*sizeof(int));
-  receive_array(socket_to_driver, mass, (ntypes+1)*sizeof(int));
+  receive_array(socket_to_driver, mass, (ntypes+1)*sizeof(double));
 }
 
 

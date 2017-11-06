@@ -26,7 +26,8 @@ class QMMMClient {
   int send_initialization(int);
   int send_natoms(int, int, int, int);
   int send_cell();
-  int send_coordinates();
+  int send_coordinates(double*,double*,double*,double*,int*,int*,double*);
+  int receive_coordinates(double*,double*,double*,double*,int*,int*,double*);
   int receive_forces();
 
   int socket_to_driver;
