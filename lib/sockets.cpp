@@ -36,7 +36,7 @@ int send_label(int socket, char *msg)
       error("Could not write to socket");
     }
     else if (ret == 0) {
-      error("Read message of size zero");
+      error("Wrote message of size zero");
     }
     else {
       buf += ret;
@@ -63,6 +63,7 @@ int read_label(int socket, char *buf)
       error("Could not read message");
     }
     else if (ret == 0) {
+      printf("Hit zero-sized message with remaining: %i %i",remaining,BUFFER_SIZE);
       error("Read message of size zero");
     }
     else {

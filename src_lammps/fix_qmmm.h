@@ -50,6 +50,9 @@ class FixQMMM : public Fix {
   int ec_fill_radii(double *, int);
 
  protected:
+  //<<<
+  QMMM_CLIENT::QMMMClient client;
+  //>>>
   MPI_Comm qm_comm;   // intra communicator with QM subsystem
   MPI_Comm mm_comm;   // intra communicator with MM subsystem
   void   *comm_buf;   // message buffer for internal communication

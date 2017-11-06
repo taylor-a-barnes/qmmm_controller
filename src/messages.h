@@ -25,6 +25,7 @@ int communicate();
 int send_initialization(int);
 int receive_initialization();
 int send_cell();
+int receive_cell(int);
 int send_coordinates();
 int send_exit();
 int receive_forces();

@@ -446,6 +446,11 @@ void FixQMMM::exchange_positions()
       //<<<
       //MPI_Send(isend_buf, 4, MPI_INT,    1, QMMM_TAG_SIZE, qm_comm);
       //MPI_Send(celldata,  9, MPI_DOUBLE, 1, QMMM_TAG_CELL, qm_comm);
+      if (screen) fputs("CALLING SEND_CELL\n",screen);
+      if (logfile) fputs("CALLING SEND_CELL\n",logfile);
+      client.send_cell();
+      if (screen) fputs("CALLED SEND_CELL\n",screen);
+      if (logfile) fputs("CALLED SEND_CELL\n",logfile);
       //>>>
     }
     if (verbose > 0) {
@@ -717,7 +722,7 @@ void FixQMMM::init()
       //&&&&&&
       printf("-----------------------------------------\n");
       printf("Calling intialize_client\n");
-      QMMM_CLIENT::QMMMClient client;
+      //QMMM_CLIENT::QMMMClient client;
       client.initialize_client();
       client.send_natoms( (int) atom->natoms, num_qm, num_mm, atom->ntypes);
       /*

@@ -81,6 +81,9 @@ int initialize_arrays()
 
 int run_simulation()
 {
+  int i;
+  int max_iterations = 100;
+
   printf("Running the simulation\n");
 
   //accept a connection
@@ -99,6 +102,26 @@ int run_simulation()
   }
 
   printf("Number of atoms: %i",num_qm);
+
+  //begin the main MD loop
+  for (i=1; i <= max_iterations; i++) {
+
+    printf("\nIteration %i",i);
+    printf("\n");
+    
+    //read the label
+    read_label(mm_socket_in, buffer);
+    printf("Read new label: %s",buffer);
+    if( strcmp(buffer,"CELL") == 0 ) {
+      receive_cell(mm_socket_in);
+    }
+    else {
+      printf("Received unexpected label: %s",buffer);
+      error("Unexpected label");
+    }
+
+  }
+
 }
 
 
@@ -213,6 +236,27 @@ int send_cell()
   celldata[8] = cellyz;
 
   send_array(qm_socket_in, celldata, sizeof(celldata));
+}
+
+
+
+/* Receive cell dimensions */
+int receive_cell(int sock)
+{
+  double celldata[9];
+
+  //receive the cell data
+  receive_array(sock, celldata, sizeof(celldata));
+
+  boxlo0 = celldata[0];
+  boxlo1 = celldata[1];
+  boxlo2 = celldata[2];
+  boxhi0 = celldata[3];
+  boxhi1 = celldata[4];
+  boxhi2 = celldata[5];
+  cellxy = celldata[6];
+  cellxz = celldata[7];
+  cellyz = celldata[8];
 }
 
 
