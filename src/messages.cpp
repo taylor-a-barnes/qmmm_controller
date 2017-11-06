@@ -72,15 +72,17 @@ int initialize_arrays()
   mm_mask_all = ( int* )malloc( natoms );
   type = ( int* )malloc( natoms );
   mass = ( double* )malloc( ntypes+1 );
+
   qm_force = ( double* )malloc( 3*num_qm );
   mm_force_all = ( double* )malloc( 3*natoms );
-  
+  mm_force_on_qm_atoms = ( double* )malloc( 3*num_qm );
 }
 
 
 
 int run_simulation()
 {
+  int iteration;
   int i;
   int max_iterations = 100;
 
@@ -104,24 +106,38 @@ int run_simulation()
   printf("Number of atoms: %i",num_qm);
 
   //begin the main MD loop
-  for (i=1; i <= max_iterations; i++) {
+  for (iteration=1; iteration <= max_iterations; iteration++) {
 
-    printf("\nIteration %i",i);
+    printf("\nIteration %i",iteration);
     printf("\n");
     
-    //read the label
+    //read the label - should be the cell information
     read_label(mm_socket_in, buffer);
-    printf("Read new label: %s",buffer);
+    printf("Read new label: %s\n",buffer);
     if( strcmp(buffer,"CELL") == 0 ) {
       receive_cell(mm_socket_in);
     }
-    else if( strcmp(buffer,"COORDS") == 0 ) {
+    else {
+      error("Unexpected label");
+    }
+
+    //read the label - should be the coordinate information
+    read_label(mm_socket_in, buffer);
+    printf("Read new label: %s\n",buffer);
+    if( strcmp(buffer,"COORDS") == 0 ) {
       receive_coordinates(mm_socket_in);
     }
     else {
-      printf("Received unexpected label: %s",buffer);
       error("Unexpected label");
     }
+
+    //zero the forces (SHOULD BE GETTING QM FORCES INSTEAD)
+    for (i=0; i<3*num_qm; i++) { qm_force[i] = 0.0; }
+    for (i=0; i<3*natoms; i++) { mm_force_all[i] = 0.0; }
+    for (i=0; i<3*num_qm; i++) { mm_force_on_qm_atoms[i] = 0.0; }
+
+    //send the forces information
+    send_forces(mm_socket_in);
 
   }
 
@@ -320,4 +336,14 @@ int receive_forces()
 {
   receive_array(qm_socket_in, qm_force, (3*num_qm)*sizeof(double));
   receive_array(qm_socket_in, mm_force_all, (3*natoms)*sizeof(double));
+}
+
+
+
+/* Send the forces through the socket */
+int send_forces(int sock)
+{
+  send_array(sock, qm_force, (3*num_qm)*sizeof(double));
+  send_array(sock, mm_force_all, (3*natoms)*sizeof(double));
+  send_array(sock, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
 }

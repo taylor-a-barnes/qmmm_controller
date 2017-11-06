@@ -207,6 +207,16 @@ int QMMMClient::send_forces()
 
 
 
+/* Receive forces from the socket */
+int QMMMClient::receive_forces(double* qm_force__, double* mm_force_all__, double* mm_force_on_qm_atoms__)
+{
+  receive_array(socket_to_driver, qm_force__, (3*num_qm)*sizeof(double));
+  receive_array(socket_to_driver, mm_force_all__, (3*natoms)*sizeof(double));
+  receive_array(socket_to_driver, mm_force_on_qm_atoms__, (3*num_qm)*sizeof(double));
+}
+
+
+
 /* Send initialization information through the socket */
 int QMMMClient::send_initialization(int sock)
 {

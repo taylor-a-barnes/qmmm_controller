@@ -30,6 +30,7 @@ int send_coordinates();
 int receive_coordinates(int);
 int send_exit();
 int receive_forces();
+int send_forces(int);
 
 int qm_socket, qm_socket_in;
 int mm_socket, mm_socket_in;
@@ -61,6 +62,7 @@ double *mass;
 
 double *qm_force;
 double *mm_force_all;
+double *mm_force_on_qm_atoms;
 
 //}
 

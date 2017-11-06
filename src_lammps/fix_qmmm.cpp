@@ -579,6 +579,7 @@ void FixQMMM::exchange_forces()
       // receive MM forces from LAMMPS
       MPI_Recv( mm_force_on_qm_atoms, 3*num_qm,MPI_DOUBLE,1,QMMM_TAG_FORCE,mm_comm,MPI_STATUS_IGNORE);
       */
+      client.receive_forces(qm_force, mm_force_all, mm_force_on_qm_atoms);
       //>>>
 
       //<<<
