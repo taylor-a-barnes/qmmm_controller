@@ -10,7 +10,8 @@
 #include <errno.h>
 #include "sockets.h"
 
-#define SOCKET_NAME "../mm_main.socket"
+//#define SOCKET_NAME "~/mm_main.socket"
+#define SOCKET_NAME "/project/projectdirs/m1944/tabarnes/edison/qmmm/pipes/t3/mm_main.socket"
 
 namespace QMMM_CLIENT {
 

@@ -21,7 +21,7 @@ int QMMMClient::initialize_client()
   struct sockaddr_un driver_address;
   int i;
 
-  printf("In C code\n");
+  printf("In C code TESTING\n");
 
   //create the socket
   socket_to_driver = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -31,6 +31,8 @@ int QMMMClient::initialize_client()
   printf("Here is the socket: %i\n",socket_to_driver);
 
   //create the socket address
+  //<<<
+  /*
   memset(&driver_address, 0, sizeof(struct sockaddr_un));
   driver_address.sun_family = AF_UNIX;
   strncpy(driver_address.sun_path, SOCKET_NAME, sizeof(driver_address.sun_path) - 1);
@@ -38,6 +40,18 @@ int QMMMClient::initialize_client()
   if (ret < 0) {
     error("Could not connect to server");
   }
+  */
+  printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+  ret = -1;
+  do {
+    printf("   Trying\n");
+    memset(&driver_address, 0, sizeof(struct sockaddr_un));
+    driver_address.sun_family = AF_UNIX;
+    strncpy(driver_address.sun_path, SOCKET_NAME, sizeof(driver_address.sun_path) - 1);
+    ret = connect(socket_to_driver, (const struct sockaddr *) &driver_address, sizeof(struct sockaddr_un));
+  }
+  while ( ret < 0 );
+  //>>>
 
 
   //send the initialization information

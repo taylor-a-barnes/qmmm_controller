@@ -17,6 +17,7 @@ int initialize_server()
   qm_socket = initialize_socket(SOCKET_NAME);
   
   mm_socket = initialize_socket("./mm_main.socket");
+  //mm_socket = initialize_socket("~/mm_main.socket");
 
   //initialize_arrays();
 }
@@ -84,7 +85,7 @@ int run_simulation()
 {
   int iteration;
   int i;
-  int max_iterations = 100;
+  int max_iterations = 101;
 
   printf("Running the simulation\n");
 
@@ -93,6 +94,9 @@ int run_simulation()
   if (mm_socket_in < 0) {
     error("Could not accept connection");
   }
+
+  //send information about the role of this process
+  send_label(mm_socket_in, "MASTER");
 
   //read initialization information
   read_label(mm_socket_in, buffer);

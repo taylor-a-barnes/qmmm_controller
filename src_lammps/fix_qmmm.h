@@ -22,9 +22,6 @@ FixStyle(qmmm,FixQMMM)
 #define LMP_FIX_QMMM_H
 
 #include "fix.h"
-//<<<
-#include "messages.h"
-//>>>
 
 namespace LAMMPS_NS {
 
@@ -50,9 +47,6 @@ class FixQMMM : public Fix {
   int ec_fill_radii(double *, int);
 
  protected:
-  //<<<
-  QMMM_CLIENT::QMMMClient client;
-  //>>>
   MPI_Comm qm_comm;   // intra communicator with QM subsystem
   MPI_Comm mm_comm;   // intra communicator with MM subsystem
   void   *comm_buf;   // message buffer for internal communication
