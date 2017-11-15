@@ -27,9 +27,7 @@
 #endif
 
 #include "library.h"
-//<<<
 #include "messages.h"
-//>>>
 
 static const char delim[] = " \t\n\r";
 
@@ -38,36 +36,13 @@ int main(int argc, char **argv)
     MPI_Comm intra_comm, qm_comm, mm_comm;
     int me, ncpu, nqm, key, retval;
 
-    //<<<
     char buffer[BUFFER_SIZE];
-    /*
-    int c;
-    bool qm_part; // flag for if this part of the calculation does the QM part
-
-    int ii;
-    printf("*** argc: %i\n",argc);
-    for (ii = 0; ii < argc; ii++) { printf("*** argv: %s\n",argv[ii]); }
-
-    // accept optional arguments
-    qm_part = false;
-    while ((c = getopt (argc, argv, "q")) != -1)
-      switch (c)
-	{
-	case 'q':
-	  printf("Found -q argument")
-	  qm_part = true;
-	  break;
-	case '?':
-	  if (me == 0) fprintf(stderr,"\n unrecognized command-line argument");	  
-	}
-    */
-
-    //>>>
+    printf("At start of pwqmmm.x\n");
+    retval = 0;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD,&ncpu);
     MPI_Comm_rank(MPI_COMM_WORLD,&me);
-
 
     /* we accept just the qm/mm file as the one argument */
     if ((argc < 2) || (argc > 3)) {
@@ -84,44 +59,21 @@ int main(int argc, char **argv)
         return -2;
     }
 
-    key = 2;
-    if (argc == 3) {
-        key = atoi(argv[2]);
-    }
-    qmmmcfg.nmm = key;
+    //Instead of using command-line arguments, start communicating with the driver
+    //The driver will tell whether this calculation handles the MM or QM parts
+    printf("Calling initialize client\n");
+    qmmmcfg.client.initialize_client();
+    printf("Finished calling initialize client\n");
+
+    //receive the role of this process
+    read_label(qmmmcfg.client.socket_to_driver, buffer);
+    printf("Read label: %s\n",buffer);
+
+    qmmmcfg.nmm = ncpu;
 
     /* sanity checks */
     qmmmcfg.comm_mode = QMMM_COMM_MPI;
-    nqm = ncpu - qmmmcfg.nmm;
-    retval = 0;
-#if 1    // AK: temporary hack
-    if ( qmmmcfg.nmm != 2 ) {
-        if (me == 0) {
-            fprintf( stderr, "\n Error in the number of processors for MM code"
-            "\n for the time being only two processor are allowed\n");
-        }
-        MPI_Finalize();
-        return -1;
-    }
-#endif
 
-    //<<<
-    /*
-    if (me == 0) {
-        const char *msg;
-
-        msg = check_qmmm_config(&qmmmcfg);
-        
-        if ((nqm < 1) || (qmmmcfg.nmm < 2)) {
-            msg = "Need at least 2 MM and 1 QM processes";
-        }
-        if (msg != NULL) {
-            retval = 1;
-            fprintf(stderr,"\n%s\n\n",msg);
-        }
-    }
-    */
-    //>>>
     MPI_Bcast(&retval,1,MPI_INT,0,MPI_COMM_WORLD);
     if (retval != 0) {
         MPI_Finalize();
@@ -156,38 +108,6 @@ int main(int argc, char **argv)
 
     MPI_Comm_split(MPI_COMM_WORLD, qmmmcfg.role, me, &intra_comm);
     qmmmcfg.my_comm = MPI_Comm_c2f(intra_comm);
-
-    /* qm to mm-master inter communicator */
-    //<<<
-    /*
-    key = MPI_UNDEFINED;
-    if ((me == 0) || (me == nqm)) key = 1;
-
-    MPI_Comm_split(MPI_COMM_WORLD, key, ncpu-me, &qm_comm);
-    qmmmcfg.qm_comm = MPI_Comm_c2f(qm_comm);
-    */
-    //>>>
-
-    /* mm-slave to mm-master inter communicator */
-    //<<<
-    /*
-    key = MPI_UNDEFINED;
-    if ((me == (ncpu-1)) || (me == nqm)) key = 1;
-
-    MPI_Comm_split(MPI_COMM_WORLD, key, me, &mm_comm);
-    qmmmcfg.mm_comm = MPI_Comm_c2f(mm_comm);
-    */
-
-    //Instead of using command-line arguments, start communicating with the driver
-    //The driver will tell whether this calculation handles the MM or QM parts
-    printf("Calling initialize client\n");
-    qmmmcfg.client.initialize_client();
-    printf("Finished calling initialize client\n");
-
-    //receive the role of this process
-    read_label(qmmmcfg.client.socket_to_driver, buffer);
-    printf("Read label: %s",buffer);
-    //>>>
 
     if (qmmmcfg.role == QMMM_ROLE_QM) {
         FILE *fp;
