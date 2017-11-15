@@ -39,7 +39,19 @@ program driver
 
   !start running the simulation
   !call execute_command_line("srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_main/lib/qmmm/pwqmmm.x qmmm.inp > input.out", WAIT=.FALSE.)
-  call execute_command_line("srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp 2 > input.out", WAIT=.FALSE.)
+!  call execute_command_line("cd mm_main", WAIT=.TRUE.)
+!  call execute_command_line("srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out", WAIT=.FALSE.)
+!  call execute_command_line("cd ../", WAIT=.TRUE.)
+
+!  call execute_command_line("pwd", WAIT=.TRUE.)
+!  call execute_command_line("cd mm_main", WAIT=.TRUE.)
+!  call execute_command_line("pwd", WAIT=.TRUE.)
+!  call execute_command_line("srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x mm_main/qmmm.inp > input.out", WAIT=.FALSE.)
+!  call execute_command_line("cd ../", WAIT=.TRUE.)
+!  call execute_command_line("pwd", WAIT=.TRUE.)
+
+  call execute_command_line("(cd ./mm_main; srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
+
   ret = run_simulation__()
 
   !sleep, to ensure that the LAMMPS call completes

@@ -16,7 +16,7 @@ int initialize_server()
 {
   qm_socket = initialize_socket(SOCKET_NAME);
   
-  mm_socket = initialize_socket("./mm_main.socket");
+  mm_socket = initialize_socket("./mm_main/driver.socket");
   //mm_socket = initialize_socket("~/mm_main.socket");
 
   //initialize_arrays();
