@@ -62,12 +62,16 @@ int main(int argc, char **argv)
     //Instead of using command-line arguments, start communicating with the driver
     //The driver will tell whether this calculation handles the MM or QM parts
     printf("Calling initialize client\n");
+    //qmmmcfg.client.socket_to_driver = qmmmcfg.client.initialize_socket("./driver.socket");
     qmmmcfg.client.initialize_client();
     printf("Finished calling initialize client\n");
 
     //receive the role of this process
     read_label(qmmmcfg.client.socket_to_driver, buffer);
     printf("Read label: %s\n",buffer);
+
+    MPI_Finalize();
+    return 0;
 
     qmmmcfg.nmm = ncpu;
 
@@ -102,8 +106,13 @@ int main(int argc, char **argv)
     if (me >= nqm) qmmmcfg.role = QMMM_ROLE_MASTER;
     if (me == (ncpu-1)) qmmmcfg.role = QMMM_ROLE_SLAVE;
     */
+    if( strcmp(buffer,"MASTER") == 0 ) {
+      qmmmcfg.role = QMMM_ROLE_MASTER;
+    }
+    else if( strcmp(buffer,"SLAVE") == 0 ) {
+      qmmmcfg.role = QMMM_ROLE_SLAVE;
+    }
     //>>>>>>
-    qmmmcfg.role = QMMM_ROLE_MASTER;
 
 
     MPI_Comm_split(MPI_COMM_WORLD, qmmmcfg.role, me, &intra_comm);

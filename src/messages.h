@@ -5,10 +5,11 @@
 #include <stdlib.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
-#include <sys/un.h>
+//#include <sys/un.h>
 #include <netinet/in.h>
 #include <errno.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 #include "../lib/sockets.h"
 
 #define SOCKET_NAME "./9Lq7BNBnBycd6nxy.socket"
@@ -19,6 +20,7 @@
 //public:
 int initialize_server();
 int initialize_socket(char*);
+int initialize_client(char*);
 int initialize_arrays();
 int run_simulation();
 int communicate();
@@ -32,8 +34,10 @@ int send_exit();
 int receive_forces();
 int send_forces(int);
 
+int driver_socket;
 int qm_socket, qm_socket_in;
 int mm_socket, mm_socket_in;
+int mm_subset_socket, mm_subset_socket_in;
 struct sockaddr_un qm_server, qm_client;
 char buffer[BUFFER_SIZE];
 

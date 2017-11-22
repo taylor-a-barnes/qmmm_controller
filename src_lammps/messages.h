@@ -6,9 +6,17 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <netdb.h>
 #include <errno.h>
+#include <unistd.h>
+#include <iostream>
+#include <fstream>
 #include "sockets.h"
+
+using namespace std;
 
 //#define SOCKET_NAME "~/mm_main.socket"
 //#define SOCKET_NAME "/project/projectdirs/m1944/tabarnes/edison/qmmm/pipes/t3/mm_main/mm_main.socket"
@@ -20,7 +28,9 @@ class QMMMClient {
 
  public:
   QMMMClient();
+  int initialize_socket(char*);
   int initialize_client();
+  int initialize_client_unix();
   int receive_initialization();
   int receive_cell();
   int receive_coordinates();
@@ -34,6 +44,7 @@ class QMMMClient {
   int receive_forces();
 
   int socket_to_driver;
+  struct sockaddr_un driver_server;
 
   int natoms;
   int num_qm;

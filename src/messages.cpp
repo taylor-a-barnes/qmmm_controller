@@ -14,18 +14,72 @@ void error(char *msg)
 /* Initialize everything necessary for the driver to act as a server */
 int initialize_server()
 {
-  qm_socket = initialize_socket(SOCKET_NAME);
-  
-  mm_socket = initialize_socket("./mm_main/driver.socket");
-  //mm_socket = initialize_socket("~/mm_main.socket");
+  //qm_socket = initialize_socket(SOCKET_NAME);  
+  //mm_socket = initialize_socket("./mm_main/driver.socket");
+  //mm_subset_socket = initialize_socket("./mm_subset/driver.socket");
 
-  //initialize_arrays();
+  driver_socket = initialize_socket("./mm_main/driver.socket");
+
+  //mm_socket = initialize_client("./mm_main/driver.socket");
+  //mm_subset_socket = initialize_client("./mm_subset/driver.socket");
 }
 
 
 
 /* Initialize a socket */
 int initialize_socket(char *name)
+{
+  int ret;
+  int sockfd;
+  struct sockaddr_in serv_addr;
+  int port;
+
+  port = 8021;
+
+  printf("In C code\n");
+
+  //unlink the socket, in case the program previously exited unexpectedly
+  //unlink(name);
+
+  //create the socket
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sockfd < 0) {
+    error("Could not create socket");
+  }
+  printf("Here is the socket: %i\n",sockfd);
+
+  //create the socket address
+  bzero((char *) &serv_addr, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  serv_addr.sin_port = htons(port);
+
+  //enable reuse of the socket
+  ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
+  if (ret < 0) {
+    error("Could not reuse socket");
+  }
+
+  //bind the socket
+  ret = bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+  if (ret < 0) {
+    error("Could not bind socket");
+  }
+
+  //start listening
+  // the second argument is the backlog size
+  ret = listen(sockfd, 20);
+  if (ret < 0) {
+    error("Could not listen");
+  }
+
+  return sockfd;
+}
+
+
+
+/* Initialize a socket */
+int initialize_socket_unix(char *name)
 {
   int ret;
   int sock;
@@ -63,6 +117,48 @@ int initialize_socket(char *name)
 
 
 
+int initialize_client(char *name)
+{
+  int ret;
+  struct sockaddr_un server_address;
+  int i;
+  int sock;
+
+  printf("In initialize_client\n");
+
+  //create the socket
+  sock = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (sock < 0) {
+    error("Could not create socket");
+  }
+  printf("Here is the socket: %i\n",sock);
+
+  printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
+  printf("Location: %s\n",name);
+  memset(&server_address, 0, sizeof(struct sockaddr_un));
+  server_address.sun_family = AF_UNIX;
+  strncpy(server_address.sun_path, name, sizeof(server_address.sun_path) - 1);
+  printf("Path: %s\n",server_address.sun_path);
+
+
+  ret = connect(sock, (const struct sockaddr *) &server_address, sizeof(struct sockaddr_un));
+  if (ret < 0) {
+    error("Could not connect");
+  }
+  return sock;
+
+
+  ret = -10;
+  do {
+    //printf("   Trying %i\n",ret);
+    ret = connect(sock, (const struct sockaddr *) &server_address, sizeof(struct sockaddr_un));
+  }
+  while ( ret < 0 );
+
+  return sock;
+}
+
+
 int initialize_arrays()
 {
   //initialize arrays for QM communication
@@ -86,17 +182,30 @@ int run_simulation()
   int iteration;
   int i;
   int max_iterations = 101;
-
+  
   printf("Running the simulation\n");
 
   //accept a connection
-  mm_socket_in = accept(mm_socket, NULL, NULL);
-  if (mm_socket_in < 0) {
+  mm_socket = accept(driver_socket, NULL, NULL);
+  if (mm_socket < 0) {
     error("Could not accept connection");
   }
+  printf("Received connection from LAMMPS master\n");
+
+  //accept a connection
+  mm_subset_socket = accept(driver_socket, NULL, NULL);
+  if (mm_subset_socket < 0) {
+    error("Could not accept connection");
+  }
+  printf("Received connection from LAMMPS slave\n");
 
   //send information about the role of this process
-  send_label(mm_socket_in, "MASTER");
+  send_label(mm_socket, "MASTER");
+
+  //send information about the role of this process
+  send_label(mm_subset_socket, "SLAVE");
+
+  return 0;
 
   //read initialization information
   read_label(mm_socket_in, buffer);
