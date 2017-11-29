@@ -245,12 +245,11 @@ int run_simulation()
   send_label(mm_subset_socket, "SLAVE");
   */
 
-  return 0;
-
   //read initialization information
-  read_label(mm_socket_in, buffer);
+  read_label(mm_socket, buffer);
   if( strcmp(buffer,"INIT") == 0 ) {
-    receive_initialization();
+    printf("Reading initialization information from LAMMPS master");
+    receive_initialization(mm_socket);
   }
   else {
     error("Initial message from LAMMPS is invalid");
@@ -265,20 +264,20 @@ int run_simulation()
     printf("\n");
     
     //read the label - should be the cell information
-    read_label(mm_socket_in, buffer);
+    read_label(mm_socket, buffer);
     printf("Read new label: %s\n",buffer);
     if( strcmp(buffer,"CELL") == 0 ) {
-      receive_cell(mm_socket_in);
+      receive_cell(mm_socket);
     }
     else {
       error("Unexpected label");
     }
 
     //read the label - should be the coordinate information
-    read_label(mm_socket_in, buffer);
+    read_label(mm_socket, buffer);
     printf("Read new label: %s\n",buffer);
     if( strcmp(buffer,"COORDS") == 0 ) {
-      receive_coordinates(mm_socket_in);
+      receive_coordinates(mm_socket);
     }
     else {
       error("Unexpected label");
@@ -290,7 +289,7 @@ int run_simulation()
     for (i=0; i<3*num_qm; i++) { mm_force_on_qm_atoms[i] = 0.0; }
 
     //send the forces information
-    send_forces(mm_socket_in);
+    send_forces(mm_socket);
 
   }
 
@@ -366,11 +365,11 @@ int send_initialization(int sock)
 
 
 /* Receive initialization information through the socket */
-int receive_initialization()
+int receive_initialization(int sock)
 {
   int32_t init[4]; //uses int32_t to ensure that client and server both use the same sized int
 
-  receive_array(mm_socket_in, init, sizeof(init));
+  receive_array(sock, init, sizeof(init));
 
   natoms = init[0];
   num_qm = init[1];

@@ -27,7 +27,7 @@ int accept_mm_subset_connection();
 int run_simulation();
 int communicate();
 int send_initialization(int);
-int receive_initialization();
+int receive_initialization(int);
 int send_cell();
 int receive_cell(int);
 int send_coordinates();

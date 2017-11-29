@@ -70,8 +70,8 @@ int main(int argc, char **argv)
     read_label(qmmmcfg.client.socket_to_driver, buffer);
     printf("Read label: %s\n",buffer);
 
-    MPI_Finalize();
-    return 0;
+    //MPI_Finalize();
+    //return 0;
 
     qmmmcfg.nmm = ncpu;
 
@@ -111,6 +111,8 @@ int main(int argc, char **argv)
     }
     else if( strcmp(buffer,"SLAVE") == 0 ) {
       qmmmcfg.role = QMMM_ROLE_SLAVE;
+      MPI_Finalize();
+      return 0;
     }
     //>>>>>>
 

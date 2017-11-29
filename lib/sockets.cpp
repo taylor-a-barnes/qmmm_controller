@@ -64,7 +64,7 @@ int read_label(int socket, char *buf)
     }
     else if (ret == 0) {
       printf("Hit zero-sized message with remaining: %i %i",remaining,BUFFER_SIZE);
-      error("Read message of size zero");
+      error("Read label of size zero");
     }
     else {
       buf += ret;
@@ -90,7 +90,7 @@ int send_array(int socket, void *data, int size)
       error("Could not write to socket");
     }
     else if (ret == 0) {
-      error("Read message of size zero");
+      error("Wrote array message of size zero");
     }
     else {
       data += ret;
@@ -117,7 +117,7 @@ int receive_array(int socket, void *data, int size)
       error("Could not read message");
     }
     else if (ret == 0) {
-      error("Read message of size zero");
+      error("Read array message of size zero");
     }
     else {
       data += ret;
