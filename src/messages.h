@@ -22,6 +22,8 @@ int initialize_server();
 int initialize_socket(char*);
 int initialize_client(char*);
 int initialize_arrays();
+int accept_mm_connection();
+int accept_mm_subset_connection();
 int run_simulation();
 int communicate();
 int send_initialization(int);
@@ -74,6 +76,12 @@ double *mm_force_on_qm_atoms;
 extern "C" {
   int initialize_server__() {
     return initialize_server();
+  }
+  int accept_mm_connection__() {
+    return accept_mm_connection();
+  }
+  int accept_mm_subset_connection__() {
+    return accept_mm_subset_connection();
   }
   int initialize_arrays__() {
     return initialize_arrays();

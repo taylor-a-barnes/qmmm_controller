@@ -177,6 +177,44 @@ int initialize_arrays()
 
 
 
+int accept_mm_connection()
+{  
+  printf("Accepting connection from main MM process\n");
+
+  //accept a connection
+  mm_socket = accept(driver_socket, NULL, NULL);
+  if (mm_socket < 0) {
+    error("Could not accept connection");
+  }
+  printf("Received connection from LAMMPS master\n");
+
+  //send information about the role of this process
+  send_label(mm_socket, "MASTER");
+
+  return 0;
+}
+
+
+
+int accept_mm_subset_connection()
+{
+  printf("Accepting connection from subset MM process\n");
+
+  //accept a connection
+  mm_subset_socket = accept(driver_socket, NULL, NULL);
+  if (mm_subset_socket < 0) {
+    error("Could not accept connection");
+  }
+  printf("Received connection from LAMMPS slave\n");
+
+  //send information about the role of this process
+  send_label(mm_subset_socket, "SLAVE");
+
+  return 0;
+}
+
+
+
 int run_simulation()
 {
   int iteration;
@@ -185,6 +223,7 @@ int run_simulation()
   
   printf("Running the simulation\n");
 
+  /*
   //accept a connection
   mm_socket = accept(driver_socket, NULL, NULL);
   if (mm_socket < 0) {
@@ -204,6 +243,7 @@ int run_simulation()
 
   //send information about the role of this process
   send_label(mm_subset_socket, "SLAVE");
+  */
 
   return 0;
 

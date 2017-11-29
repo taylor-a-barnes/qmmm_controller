@@ -11,6 +11,16 @@ program driver
        integer(kind=c_int) :: initialize_server__
      end function initialize_server__
 
+     function accept_mm_connection__() bind(c, name="accept_mm_connection__")
+       use, intrinsic :: iso_c_binding
+       integer(kind=c_int) :: accept_mm_connection__
+     end function accept_mm_connection__
+
+     function accept_mm_subset_connection__() bind(c, name="accept_mm_subset_connection__")
+       use, intrinsic :: iso_c_binding
+       integer(kind=c_int) :: accept_mm_subset_connection__
+     end function accept_mm_subset_connection__
+
      function initialize_arrays__() bind(c, name="initialize_arrays__")
        use, intrinsic :: iso_c_binding
        integer(kind=c_int) :: initialize_arrays__
@@ -69,7 +79,9 @@ program driver
   call execute_command_line("hostname -i > hostname", WAIT=.TRUE.)
   ret = initialize_server__()
   call execute_command_line("(cd ./mm_main; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
+  ret = accept_mm_connection__()
   call execute_command_line("(cd ./mm_subset; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
+  ret = accept_mm_subset_connection__()
   ret = run_simulation__()
   CALL SLEEP(5)
 
