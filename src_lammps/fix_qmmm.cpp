@@ -524,12 +524,22 @@ void FixQMMM::exchange_positions()
   } else if (qmmm_role == QMMM_ROLE_SLAVE) {
 
     //<<<
+    //@@@
     //MPI_Recv(qm_coord, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_COORD, mm_comm, MPI_STATUS_IGNORE);
+    /* receive the new QM coordinates from the server */
+    printf("Receiving QM coordinates\n");
+    printf("Using socket: %i\n",qmmmcfg.client.socket_to_driver);
+    printf("Bytes: %i\n",(3*num_qm)*sizeof(double));
+    qmmmcfg.client.receive_qm_coordinates(qm_coord, num_qm);
+    //receive_array(qmmmcfg.client.socket_to_driver, qm_coord, (3*num_qm)*sizeof(double));
+    printf("Finished receiving QM coordinates\n");
+    //send_label(qmmmcfg.client.socket_to_driver, "RESP");
+    //>>>
+
     // not needed for as long as we allow only one MPI task as slave
-    //MPI_Bcast(qm_coord, 3*num_qm, MPI_DOUBLE,0,world);
+    MPI_Bcast(qm_coord, 3*num_qm, MPI_DOUBLE,0,world);
 
     /* update coordinates of (QM) atoms */
-    /*
     for (int i=0; i < nlocal; ++i) {
       if (mask[i] & groupbit) {
         for (int j=0; j < num_qm; ++j) {
@@ -541,8 +551,6 @@ void FixQMMM::exchange_positions()
         }
       }
     }
-    */
-    //>>>
   }
 
   return;
@@ -679,7 +687,12 @@ void FixQMMM::exchange_forces()
     // use qm_coord array as a communication buffer
     //<<<
     //MPI_Send(reduced_mm_force_on_qm_atoms, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_FORCE, mm_comm);
+    qmmmcfg.client.send_mm_force_on_qm_atoms(reduced_mm_force_on_qm_atoms, num_qm);
     //>>>
+  }
+  if ((comm->me) == 0 && (verbose > 0)) {
+    if (screen)  fputs("QMMM: finished exchanging forces\n",screen);
+    if (logfile) fputs("QMMM: finished exchanging forces\n",logfile);
   }
   return;
 }

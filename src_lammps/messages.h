@@ -43,6 +43,10 @@ class QMMMClient {
   int receive_coordinates(double*,double*,double*,double*,int*,int*,double*);
   int receive_forces();
 
+  //for MM subset process
+  int receive_qm_coordinates(double*,int);
+  int send_mm_force_on_qm_atoms(double*,int);
+
   int socket_to_driver;
   struct sockaddr_un driver_server;
 

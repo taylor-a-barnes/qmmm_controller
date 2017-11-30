@@ -339,6 +339,22 @@ int QMMMClient::receive_forces(double* qm_force__, double* mm_force_all__, doubl
 
 
 
+/* Receive QM coordinates */
+int QMMMClient::receive_qm_coordinates(double* qm_coord__, int num_qm__)
+{
+  receive_array(socket_to_driver, qm_coord__, (3*num_qm__)*sizeof(double));
+}
+
+
+
+/* Send QM forces */
+int QMMMClient::send_mm_force_on_qm_atoms(double* mm_force_on_qm_atoms__, int num_qm__)
+{
+  send_array(socket_to_driver, mm_force_on_qm_atoms__, (3*num_qm__)*sizeof(double));
+}
+
+
+
 /* Send initialization information through the socket */
 int QMMMClient::send_initialization(int sock)
 {

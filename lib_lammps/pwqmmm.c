@@ -111,8 +111,8 @@ int main(int argc, char **argv)
     }
     else if( strcmp(buffer,"SLAVE") == 0 ) {
       qmmmcfg.role = QMMM_ROLE_SLAVE;
-      MPI_Finalize();
-      return 0;
+      //MPI_Finalize();
+      //return 0;
     }
     //>>>>>>
 

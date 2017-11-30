@@ -36,7 +36,7 @@ int send_label(int socket, char *msg)
       error("Could not write to socket");
     }
     else if (ret == 0) {
-      error("Read message of size zero");
+      error("Wrote label message of size zero");
     }
     else {
       buf += ret;
@@ -63,7 +63,7 @@ int read_label(int socket, char *buf)
       error("Could not read message");
     }
     else if (ret == 0) {
-      error("Read message of size zero");
+      error("Read label message of size zero");
     }
     else {
       buf += ret;
@@ -89,7 +89,7 @@ int send_array(int socket, void *data, int size)
       error("Could not write to socket");
     }
     else if (ret == 0) {
-      error("Read message of size zero");
+      error("Wrote array message of size zero");
     }
     else {
       data += ret;
@@ -116,7 +116,7 @@ int receive_array(int socket, void *data, int size)
       error("Could not read message");
     }
     else if (ret == 0) {
-      error("Read message of size zero");
+      error("Read array message of size zero");
     }
     else {
       data += ret;
