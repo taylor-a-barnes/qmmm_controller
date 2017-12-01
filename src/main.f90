@@ -82,6 +82,7 @@ program driver
   ret = accept_mm_connection__()
   call execute_command_line("(cd ./mm_subset; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
   ret = accept_mm_subset_connection__()
+  call execute_command_line("(cd ./qm/qm-pw; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/builds/qm/bin/pw.x water.in > water.out)", WAIT=.FALSE.)
   ret = run_simulation__()
   CALL SLEEP(5)
 

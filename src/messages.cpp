@@ -191,6 +191,17 @@ int accept_mm_connection()
   //send information about the role of this process
   send_label(mm_socket, "MASTER");
 
+  //receive QM information
+  read_label(mm_socket, buffer);
+  if( strcmp(buffer,"QM_INFO") == 0 ) {
+    printf("Reading QM information from LAMMPS master\n");
+    receive_qm_information(mm_socket);
+  }
+  else {
+    error("Expected QM information");
+  }
+
+
   return 0;
 }
 
@@ -506,4 +517,22 @@ int send_forces(int sock)
   send_array(sock, qm_force, (3*num_qm)*sizeof(double));
   send_array(sock, mm_force_all, (3*natoms)*sizeof(double));
   send_array(sock, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
+}
+
+
+
+/* Receive initialization information through the socket */
+int receive_qm_information(int sock)
+{
+  int32_t init[3]; //uses int32_t to ensure that client and server both use the same sized int
+
+  receive_array(sock, init, sizeof(init));
+
+  qm_mode = init[0];
+  qm_verbose = init[1];
+  qm_steps = init[2];
+
+  printf("qm_mode:    %i\n",qm_mode);
+  printf("qm_verbose: %i\n",qm_verbose);
+  printf("qm_steps:   %i\n",qm_steps);
 }

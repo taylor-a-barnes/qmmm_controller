@@ -427,3 +427,22 @@ int QMMMClient::receive_forces()
   receive_array(socket_to_driver, qm_force, (3*num_qm)*sizeof(double));
   receive_array(socket_to_driver, mm_force_all, (3*natoms)*sizeof(double));
 }
+
+
+
+/* Send initialization information through the socket */
+int QMMMClient::send_qm_information(int sock, int qmmm_mode__, int verbose__, int steps__)
+{
+  int32_t init[3]; //uses int32_t to ensure that client and server both use the same sized int
+
+  //label this message
+  send_label(sock, "QM_INFO");
+
+  //send the nuclear coordinates
+  init[0] = qmmm_mode__;
+  //init[1] = qm_comm;
+  init[1] = verbose__;
+  init[2] = steps__;
+
+  send_array(sock, init, sizeof(init));
+}

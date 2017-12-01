@@ -37,11 +37,12 @@ class QMMMClient {
   int send_forces();
   int receive_forces(double*,double*,double*);
   int send_initialization(int);
-  int send_natoms(int, int, int, int);
+  int send_natoms(int,int,int,int);
   int send_cell();
   int send_coordinates(double*,double*,double*,double*,int*,int*,double*);
   int receive_coordinates(double*,double*,double*,double*,int*,int*,double*);
   int receive_forces();
+  int send_qm_information(int,int,int,int);
 
   //for MM subset process
   int receive_qm_coordinates(double*,int);

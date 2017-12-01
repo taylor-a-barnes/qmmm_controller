@@ -108,6 +108,10 @@ int main(int argc, char **argv)
     */
     if( strcmp(buffer,"MASTER") == 0 ) {
       qmmmcfg.role = QMMM_ROLE_MASTER;
+      
+      //send information about the qm part of the calculation
+      qmmmcfg.client.send_qm_information(qmmmcfg.client.socket_to_driver, 
+             qmmmcfg.qmmm_mode, qmmmcfg.verbose, qmmmcfg.steps);
     }
     else if( strcmp(buffer,"SLAVE") == 0 ) {
       qmmmcfg.role = QMMM_ROLE_SLAVE;
