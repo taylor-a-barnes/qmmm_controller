@@ -226,6 +226,25 @@ int accept_mm_subset_connection()
 
 
 
+int accept_qm_connection()
+{
+  printf("Accepting connection from QM process\n");
+
+  //accept a connection
+  qm_socket = accept(driver_socket, NULL, NULL);
+  if (qm_socket < 0) {
+    error("Could not accept connection");
+  }
+  printf("Received connection from Quantum ESPRESSO\n");
+
+  //send information about the role of this process
+  send_label(qm_socket, "QM");
+
+  return 0;
+}
+
+
+
 int run_simulation()
 {
   int iteration;

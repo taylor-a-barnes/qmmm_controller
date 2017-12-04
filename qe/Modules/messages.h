@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 #include "sockets.h"
 
 //#define SOCKET_NAME "./9Lq7BNBnBycd6nxy.socket"

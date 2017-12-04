@@ -24,6 +24,7 @@ int initialize_client(char*);
 int initialize_arrays();
 int accept_mm_connection();
 int accept_mm_subset_connection();
+int accept_qm_connection();
 int run_simulation();
 int communicate();
 int send_initialization(int);
@@ -87,6 +88,9 @@ extern "C" {
   }
   int accept_mm_subset_connection__() {
     return accept_mm_subset_connection();
+  }
+  int accept_qm_connection__() {
+    return accept_qm_connection();
   }
   int initialize_arrays__() {
     return initialize_arrays();

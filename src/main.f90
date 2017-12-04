@@ -21,6 +21,11 @@ program driver
        integer(kind=c_int) :: accept_mm_subset_connection__
      end function accept_mm_subset_connection__
 
+     function accept_qm_connection__() bind(c, name="accept_qm_connection__")
+       use, intrinsic :: iso_c_binding
+       integer(kind=c_int) :: accept_qm_connection__
+     end function accept_qm_connection__
+
      function initialize_arrays__() bind(c, name="initialize_arrays__")
        use, intrinsic :: iso_c_binding
        integer(kind=c_int) :: initialize_arrays__
@@ -82,7 +87,8 @@ program driver
   ret = accept_mm_connection__()
   call execute_command_line("(cd ./mm_subset; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
   ret = accept_mm_subset_connection__()
-  call execute_command_line("(cd ./qm/qm-pw; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/builds/qm/bin/pw.x water.in > water.out)", WAIT=.FALSE.)
+  call execute_command_line("(cd ./qm; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/builds/qm/bin/pw.x water.in > water.out)", WAIT=.FALSE.)
+  ret = accept_qm_connection__()
   ret = run_simulation__()
   CALL SLEEP(5)
 
