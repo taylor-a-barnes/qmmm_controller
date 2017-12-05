@@ -4,6 +4,7 @@ program driver
   implicit none
 
   integer :: ret
+  character(len=32) :: hostname
 
   interface
      function initialize_server__() bind(c, name="initialize_server__")
@@ -87,7 +88,11 @@ program driver
   ret = accept_mm_connection__()
   call execute_command_line("(cd ./mm_subset; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
   ret = accept_mm_subset_connection__()
-  call execute_command_line("(cd ./qm; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/builds/qm/bin/pw.x water.in > water.out)", WAIT=.FALSE.)
+  open(unit=20, file="./hostname")
+  READ(20,*)hostname
+  WRITE(6,*)'MY HOSTNAME IS: ',hostname
+  WRITE(6,*)'QE CALL LINE IS: ',"(cd ./qm; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/builds/qm/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)"
+  call execute_command_line("(cd ./qm; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/builds/qm/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)", WAIT=.FALSE.)
   ret = accept_qm_connection__()
   ret = run_simulation__()
   CALL SLEEP(5)

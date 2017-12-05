@@ -43,41 +43,42 @@ PROGRAM pwscf
   !
   !
   !<<<
-  WRITE(6,*)'Here in PW'
-  WRITE(6,*)'Calling initialize client'
-  CALL initialize_client()
-  WRITE(6,*)'Finished calling initialize client'
-  !GOAL: Receive QMMM setup information from driver, then exit
-  !CALL qmmm_config( mode, comm, verbose, step )
+!  WRITE(6,*)'Here in PW'
+!  WRITE(6,*)'Calling initialize client'
+!  CALL initialize_client()
+!  WRITE(6,*)'Finished calling initialize client'
+!  !GOAL: Receive QMMM setup information from driver, then exit
+!  !CALL qmmm_config( mode, comm, verbose, step )
 
-
-
-  !CALL f2libpwscf(lib_comm_,nim_,npt_,npl_,nta_,nbn_,ndg_,retval_,infile_)
+!  CALL f2libpwscf(lib_comm_,nim_,npt_,npl_,nta_,nbn_,ndg_,retval_,infile_)
 !  CALL c2qmmm_mpi_config(qmmmcfg.qmmm_mode, qmmmcfg.qm_comm, qmmmcfg.verbose, qmmmcfg.steps);
 !  CALL c2libpwscf((qmmmcfg.my_comm, nimage, npots, npool, ntg, nband, ndiag, &retval, qmmmcfg.qminp);
 
-
-
-
-!  CALL mp_startup ( diag_in_band_group = .true. )
-!  CALL environment_start ( 'PWSCF' )
+  CALL mp_startup ( diag_in_band_group = .true. )
+  CALL environment_start ( 'PWSCF' )
   !
-!  CALL read_input_file ('PW', input_file_ )
+  CALL read_input_file ('PW', input_file_ )
+  !<<<
+  WRITE(6,*)'Finished reading input file'
+  !>>>
   !
   ! ... Check if running standalone or in "driver" mode
   !
-!  srvaddress = get_server_address ( command_line ) 
+  srvaddress = get_server_address ( command_line ) 
+  !<<<
+  WRITE(6,*)'Finished getting the server_address'
+  !>>>
   !
   ! ... Perform actual calculation
   !
-!  IF ( trim(srvaddress) == ' ' ) THEN
-!     CALL run_pwscf  ( exit_status )
-!  ELSE
-!     CALL run_driver ( srvaddress, exit_status )
-!  END IF
+  IF ( trim(srvaddress) == ' ' ) THEN
+     CALL run_pwscf  ( exit_status )
+  ELSE
+     CALL run_driver ( srvaddress, exit_status )
+  END IF
   !
-!  CALL stop_run( exit_status )
-!  CALL do_stop( exit_status )
+  CALL stop_run( exit_status )
+  CALL do_stop( exit_status )
   !>>>
   !
   STOP

@@ -238,7 +238,7 @@ int accept_qm_connection()
   printf("Received connection from Quantum ESPRESSO\n");
 
   //send information about the role of this process
-  send_label(qm_socket, "QM");
+  send_label(qm_socket, "QM          ");
 
   return 0;
 }
