@@ -237,8 +237,11 @@ int accept_qm_connection()
   }
   printf("Received connection from Quantum ESPRESSO\n");
 
-  //send information about the role of this process
-  send_label(qm_socket, "QM          ");
+  //check the status of QE
+  send_label(qm_socket, "STATUS      ");
+
+  read_label(qm_socket, buffer);
+  printf("Read label from QE: %s\n",buffer);
 
   return 0;
 }

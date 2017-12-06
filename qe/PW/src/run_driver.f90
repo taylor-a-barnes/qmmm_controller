@@ -383,6 +383,80 @@ CONTAINS
     at = cellh / alat                            ! and so the cell
     !
   END SUBROUTINE read_and_share
+  !<<<
+  !
+  !
+  SUBROUTINE read_cell()
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading cell "
+    !
+    ! ... First reads cell and the number of atoms
+    !
+    IF ( ionode ) CALL readbuffer(socket, mtxbuffer, 9)
+    cellh = RESHAPE(mtxbuffer, (/3,3/))         
+    !
+    ! ... Share the received data 
+    !
+    CALL mp_bcast( cellh,  ionode_id, intra_image_comm )  
+    !
+    ! ... Convert the incoming configuration to the internal pwscf format
+    !
+    cellh  = TRANSPOSE(  cellh )                 ! row-major to column-major 
+    tau = RESHAPE( combuf, (/ 3 , nat /) )/alat  ! internally positions are in alat 
+    at = cellh / alat                            ! and so the cell
+    !
+  END SUBROUTINE read_cell
+  !
+  !
+  SUBROUTINE update_cell()
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Updating cell "
+    !
+    ! ... Recompute cell data
+    !
+    CALL recips( at(1,1), at(1,2), at(1,3), bg(1,1), bg(1,2), bg(1,3) )
+    CALL volume( alat, at(1,1), at(1,2), at(1,3), omega )
+    !
+    ! ... Check if the cell is changed too much and in that case reset the
+    ! ... g-vectors
+    !
+    lgreset = ( ABS ( omega_reset - omega ) / omega .GT. gvec_omega_tol )
+    !
+    ! ... Initialize the G-Vectors when needed
+    !
+    IF ( lgreset ) THEN
+       !
+       ! ... Reinitialize the G-Vectors if the cell is changed
+       !
+       CALL initialize_g_vectors()
+       !
+    ELSE
+       !
+       ! ... Update only atomic position and potential from the history
+       ! ... if the cell did not change too much
+       !
+       CALL update_pot()
+       CALL hinit1()
+    END IF
+  END SUBROUTINE update_cell
+  !
+  !
+  SUBROUTINE read_coordinates()
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading coordinates "
+    !
+    ! ... Allocate the dummy array for the atoms coordinate and share it
+    !
+    IF ( .NOT. ALLOCATED( combuf ) ) THEN
+       ALLOCATE( combuf( 3 * nat ) )
+    END IF
+    IF ( ionode ) CALL readbuffer(socket, combuf, nat*3)
+    CALL mp_bcast( combuf, ionode_id, intra_image_comm)
+    !
+  END SUBROUTINE read_coordinates
+  !NOTE:
+  !ALSO NEED qm_charge, mm_charge_all, mm_coord_all, mm_mask_all, type, mass
+  !>>>
   !
   !
   SUBROUTINE initialize_g_vectors()
