@@ -169,6 +169,12 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         hasdata=.false.
         firststep = .false.
         !
+     !<<<
+     CASE( ">RID" )
+        CALL set_replica_id()
+        isinit=.true.
+        !
+     !>>>
      CASE DEFAULT
         exit_status = 130
         RETURN
@@ -384,6 +390,29 @@ CONTAINS
     !
   END SUBROUTINE read_and_share
   !<<<
+  !
+  !
+  SUBROUTINE set_replica_id()
+    !
+    ! ... Check if the replica id (rid) is the same as in the last run
+    !
+    IF ( ionode ) CALL readbuffer( socket, rid ) 
+    CALL mp_bcast( rid, ionode_id, intra_image_comm )
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Receiving replica", rid, rid_old
+    IF ( rid .NE. rid_old .AND. .NOT. firststep ) THEN
+       !
+       ! ... If a different replica reset the history
+       ! ... the G-vectors will be reinitialized only if needed!
+       ! ... see lgreset below
+       !
+       IF ( ionode ) write(*,*) " @ DRIVER MODE: Resetting scf history "
+       CALL close_files(.TRUE.)
+    END IF
+    !
+    rid_old = rid
+    !
+  END SUBROUTINE set_replica_id
   !
   !
   SUBROUTINE read_cell()

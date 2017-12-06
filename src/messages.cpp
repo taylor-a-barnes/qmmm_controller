@@ -228,6 +228,9 @@ int accept_mm_subset_connection()
 
 int accept_qm_connection()
 {
+  int id;
+  int plen;
+  
   printf("Accepting connection from QM process\n");
 
   //accept a connection
@@ -239,7 +242,19 @@ int accept_qm_connection()
 
   //check the status of QE
   send_label(qm_socket, "STATUS      ");
+  read_label(qm_socket, buffer);
+  printf("Read label from QE: %s\n",buffer);
 
+  //initialize QE
+  send_label(qm_socket, ">RID        ");
+  //writebuffer(qm_socket, 1, 1*sizeof(int));
+  //writebuffer(qm_socket, 12, 1*sizeof(int));
+  //writebuffer(qm_socket, "            ", 1*sizeof(char));
+  id = 12355;
+  send_array(qm_socket, &id, 1*sizeof(int));
+
+  //check the status of QE
+  send_label(qm_socket, "STATUS      ");
   read_label(qm_socket, buffer);
   printf("Read label from QE: %s\n",buffer);
 
