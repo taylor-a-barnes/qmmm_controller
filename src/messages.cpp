@@ -349,6 +349,8 @@ int run_simulation()
 
   }
 
+  //instruct QE to exit
+  send_label(qm_socket, "EXIT        ");
 }
 
 

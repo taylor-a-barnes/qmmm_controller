@@ -174,6 +174,10 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         CALL set_replica_id()
         isinit=.true.
         !
+     CASE( "EXIT" )
+        exit_status = 0
+        RETURN
+        !
      !>>>
      CASE DEFAULT
         exit_status = 130
