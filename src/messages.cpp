@@ -192,6 +192,8 @@ int accept_mm_connection()
   send_label(mm_socket, "MASTER");
 
   //receive QM information
+  
+  printf("$$$\n");
   read_label(mm_socket, buffer);
   if( strcmp(buffer,"QM_INFO") == 0 ) {
     printf("Reading QM information from LAMMPS master\n");
@@ -200,7 +202,6 @@ int accept_mm_connection()
   else {
     error("Expected QM information");
   }
-
 
   return 0;
 }
@@ -241,15 +242,12 @@ int accept_qm_connection()
   printf("Received connection from Quantum ESPRESSO\n");
 
   //check the status of QE
-  send_label(qm_socket, "STATUS      ");
+  send_label(qm_socket, "STATUS");
   read_label(qm_socket, buffer);
   printf("Read label from QE: %s\n",buffer);
 
-  //initialize QE
+  //initialize the QE replica ID
   send_label(qm_socket, ">RID        ");
-  //writebuffer(qm_socket, 1, 1*sizeof(int));
-  //writebuffer(qm_socket, 12, 1*sizeof(int));
-  //writebuffer(qm_socket, "            ", 1*sizeof(char));
   id = 12355;
   send_array(qm_socket, &id, 1*sizeof(int));
 
@@ -321,6 +319,10 @@ int run_simulation()
       error("Unexpected label");
     }
 
+    //send the cell information to QE
+    //send_label(qm_socket, ">CELL");
+    //send_cell(qm_socket);
+
     //read the label - should be the coordinate information
     read_label(mm_socket, buffer);
     printf("Read new label: %s\n",buffer);
@@ -371,7 +373,7 @@ int communicate()
   send_initialization(qm_socket_in);
 
   //send information about the cell dimensions
-  send_cell();
+  send_cell(qm_socket_in);
 
   for (i=1; i <= max_iterations; i++) {
 
@@ -446,12 +448,9 @@ int receive_initialization(int sock)
 
 
 /* Send cell dimensions */
-int send_cell()
+int send_cell(int sock)
 {
   double celldata[9];
-
-  //label this message
-  send_label(qm_socket_in, "CELL");
 
   //send the cell data
   celldata[0] = boxlo0;
@@ -464,7 +463,7 @@ int send_cell()
   celldata[7] = cellxz;
   celldata[8] = cellyz;
 
-  send_array(qm_socket_in, celldata, sizeof(celldata));
+  send_array(sock, celldata, sizeof(celldata));
 }
 
 

@@ -22,11 +22,25 @@ void error(char *msg)
 /* Send text through the socket */
 int send_label(int socket, char *msg)
 {
+  int i;
   int ret;
   int remaining;
   char buffer[BUFFER_SIZE];
+  bool str_end;
 
   strcpy(buffer, msg);
+
+  //Fortran has trouble with null characters, so convert them to whitespace
+  str_end = false;
+  for (i=0; i<BUFFER_SIZE; i++)
+  {
+    if( buffer[i] == '\0' ) {
+      str_end = true;
+    }
+    if( str_end ) {
+      buffer[i] = ' '; 
+    }
+  }
 
   char *buf = (char*)&buffer;
   remaining = sizeof(buffer);
@@ -53,6 +67,7 @@ int send_label(int socket, char *msg)
 /* Read a label from the socket */
 int read_label(int socket, char *buf)
 {
+  int i;
   int ret;
   int remaining;
 
@@ -72,6 +87,14 @@ int read_label(int socket, char *buf)
     }
   }
   while (remaining > 0);
+
+  buf -= BUFFER_SIZE;
+  for (i=0; i<BUFFER_SIZE; i++)
+  {
+    if( buf[i] == ' ' ) {
+      buf[i] = '\0'; 
+    }
+  }
 
 }
 

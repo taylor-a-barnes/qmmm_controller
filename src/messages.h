@@ -29,7 +29,7 @@ int run_simulation();
 int communicate();
 int send_initialization(int);
 int receive_initialization(int);
-int send_cell();
+int send_cell(int);
 int receive_cell(int);
 int send_coordinates();
 int receive_coordinates(int);
