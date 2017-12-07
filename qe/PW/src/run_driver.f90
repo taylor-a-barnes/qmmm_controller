@@ -426,24 +426,43 @@ CONTAINS
   END SUBROUTINE set_replica_id
   !
   !
+  SUBROUTINE set_nat()
+    ! ... First reads cell and the number of atoms
+    !
+    IF ( ionode ) CALL readbuffer(socket, nat)
+    CALL mp_bcast(    nat, ionode_id, intra_image_comm )
+    !
+  END SUBROUTINE set_nat
+  !
+  !
   SUBROUTINE read_cell()
     !
     IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading cell "
     !
+    IF ( .NOT. firststep) THEN
+       at_old = at
+       omega_old = omega
+    END IF
+    !
     ! ... First reads cell and the number of atoms
     !
     IF ( ionode ) CALL readbuffer(socket, mtxbuffer, 9)
-    cellh = RESHAPE(mtxbuffer, (/3,3/))         
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Received cell "
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: mtxbuffer: ",mtxbuffer
+    cellh = RESHAPE(mtxbuffer, (/3,3/))
     !
     ! ... Share the received data 
     !
-    CALL mp_bcast( cellh,  ionode_id, intra_image_comm )  
+    CALL mp_bcast( cellh,  ionode_id, intra_image_comm )
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: cellh: ",cellh
     !
     ! ... Convert the incoming configuration to the internal pwscf format
     !
-    cellh  = TRANSPOSE(  cellh )                 ! row-major to column-major 
-    tau = RESHAPE( combuf, (/ 3 , nat /) )/alat  ! internally positions are in alat 
+    cellh  = TRANSPOSE(  cellh )                 ! row-major to column-major
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: alat ",alat
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: at before ",at
     at = cellh / alat                            ! and so the cell
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: at after ",at
     !
   END SUBROUTINE read_cell
   !

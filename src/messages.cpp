@@ -485,6 +485,18 @@ int receive_cell(int sock)
   cellxy = celldata[6];
   cellxz = celldata[7];
   cellyz = celldata[8];
+
+  /*
+  printf("boxlo0: %f\n",celldata[0]);
+  printf("boxlo1: %f\n",celldata[1]);
+  printf("boxlo2: %f\n",celldata[2]);
+  printf("boxhi0: %f\n",celldata[3]);
+  printf("boxhi1: %f\n",celldata[4]);
+  printf("boxhi2: %f\n",celldata[5]);
+  printf("cellxy: %f\n",celldata[6]);
+  printf("cellxz: %f\n",celldata[7]);
+  printf("cellyz: %f\n",celldata[8]);
+  */
 }
 
 

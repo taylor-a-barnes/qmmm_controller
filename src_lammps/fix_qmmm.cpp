@@ -448,7 +448,9 @@ void FixQMMM::exchange_positions()
       //MPI_Send(celldata,  9, MPI_DOUBLE, 1, QMMM_TAG_CELL, qm_comm);
       if (screen) fputs("CALLING SEND_CELL\n",screen);
       if (logfile) fputs("CALLING SEND_CELL\n",logfile);
-      qmmmcfg.client.send_cell();
+      //qmmmcfg.client.send_cell();
+      send_label(qmmmcfg.client.socket_to_driver, "CELL");
+      send_array(qmmmcfg.client.socket_to_driver, celldata, sizeof(celldata));
       if (screen) fputs("CALLED SEND_CELL\n",screen);
       if (logfile) fputs("CALLED SEND_CELL\n",logfile);
       //>>>
