@@ -266,6 +266,7 @@ int run_simulation()
   int iteration;
   int i;
   int max_iterations = 101;
+  double qm_energy;
   
   printf("Running the simulation\n");
 
@@ -294,7 +295,7 @@ int run_simulation()
   //read initialization information
   read_label(mm_socket, buffer);
   if( strcmp(buffer,"INIT") == 0 ) {
-    printf("Reading initialization information from LAMMPS master");
+    printf("Reading initialization information from LAMMPS master\n");
     receive_initialization(mm_socket);
   }
   else {
@@ -323,6 +324,11 @@ int run_simulation()
     //send_label(qm_socket, ">CELL");
     //send_cell(qm_socket);
 
+    //send the number of atoms to QE
+    send_label(qm_socket, ">NAT");
+    send_array(qm_socket, &num_qm, 1*sizeof(int));
+
+
     //read the label - should be the coordinate information
     read_label(mm_socket, buffer);
     printf("Read new label: %s\n",buffer);
@@ -333,7 +339,22 @@ int run_simulation()
       error("Unexpected label");
     }
 
-    //send the forces to the MM subset process
+    //send the coordinates to the QM process
+    send_label(qm_socket, ">COORD");
+    printf("O: %f %f %f\n",qm_coord[0],qm_coord[1],qm_coord[2]);
+    printf("H: %f %f %f\n",qm_coord[3],qm_coord[4],qm_coord[5]);
+    printf("H: %f %f %f\n",qm_coord[6],qm_coord[7],qm_coord[8]);
+    send_array(qm_socket, qm_coord, (3*num_qm)*sizeof(double));
+
+    //have the QM process run an SCF calculation
+    send_label(qm_socket, "SCF");
+
+    //get the QM energy
+    send_label(qm_socket, "<ENERGY");
+    receive_array(qm_socket, &qm_energy, 1*sizeof(double));
+    printf("Read energy from QE: %f\n",qm_energy);
+
+    //send the coordinates to the MM subset process
     send_array(mm_subset_socket, qm_coord, (3*num_qm)*sizeof(double));
 
     //wait for message response
@@ -533,6 +554,8 @@ int send_coordinates()
 /* Receive atomic positions through the socket */
 int receive_coordinates(int sock)
 {
+  int i;
+
   receive_array(sock, qm_coord, (3*num_qm)*sizeof(double));
   receive_array(sock, qm_charge, (num_qm)*sizeof(double));
   receive_array(sock, mm_charge_all, (natoms)*sizeof(double));
@@ -540,6 +563,14 @@ int receive_coordinates(int sock)
   receive_array(sock, mm_mask_all, (natoms)*sizeof(int));
   receive_array(sock, type, (natoms)*sizeof(int));
   receive_array(sock, mass, (ntypes+1)*sizeof(double));
+
+  //convert coordinates to a.u.
+  for (i=0; i < 3*num_qm; i++) {
+    qm_coord[i] = qm_coord[i]*angstrom_to_bohr;
+  }
+  for (i=0; i < 3*natoms; i++) {
+    mm_coord_all[i] = mm_coord_all[i]*angstrom_to_bohr;
+  }
 }
 
 

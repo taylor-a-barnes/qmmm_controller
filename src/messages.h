@@ -60,10 +60,12 @@ float cellxy = 0.0;
 float cellxz = 0.0;
 float cellyz = 0.0;
 
-double *qm_coord;
+const float angstrom_to_bohr = 1.889725989;
+
+double *qm_coord; //in bohr
 double *qm_charge;
 double *mm_charge_all;
-double *mm_coord_all;
+double *mm_coord_all; //in bohr
 int *mm_mask_all;
 int *type;
 double *mass;

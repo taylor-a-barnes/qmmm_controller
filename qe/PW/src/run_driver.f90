@@ -174,12 +174,21 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         CALL set_replica_id()
         isinit=.true.
         !
+     CASE( ">NAT" )
+        CALL set_nat()
+        !
      CASE( ">CELL" )
         CALL read_cell()
         CALL update_cell()
         !
      CASE( ">COORD" )
         CALL read_coordinates()
+        !
+     CASE( "SCF" )
+        CALL run_scf()
+        !
+     CASE( "<ENERGY" )
+        CALL write_energy()
         !
      CASE( "EXIT" )
         exit_status = 0
@@ -427,10 +436,18 @@ CONTAINS
   !
   !
   SUBROUTINE set_nat()
-    ! ... First reads cell and the number of atoms
+    ! ... Reads the number of atoms
     !
     IF ( ionode ) CALL readbuffer(socket, nat)
     CALL mp_bcast(    nat, ionode_id, intra_image_comm )
+    !
+    ! ... Allocate the dummy array for the atoms coordinates
+    !
+    IF ( .NOT. ALLOCATED( combuf ) ) THEN
+       ALLOCATE( combuf( 3 * nat ) )
+    END IF
+    !
+    IF ( ionode ) write(*,*) " @ DRIVER MODE: Read number of atoms: ",nat
     !
   END SUBROUTINE set_nat
   !
@@ -461,7 +478,7 @@ CONTAINS
     cellh  = TRANSPOSE(  cellh )                 ! row-major to column-major
     IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: alat ",alat
     IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: at before ",at
-    at = cellh / alat                            ! and so the cell
+    at = cellh / alat                            ! internally cell is in alat
     IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: at after ",at
     !
   END SUBROUTINE read_cell
@@ -504,17 +521,43 @@ CONTAINS
     !
     IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading coordinates "
     !
-    ! ... Allocate the dummy array for the atoms coordinate and share it
+    ! ... Read the atoms coordinates and share them
     !
-    IF ( .NOT. ALLOCATED( combuf ) ) THEN
-       ALLOCATE( combuf( 3 * nat ) )
-    END IF
     IF ( ionode ) CALL readbuffer(socket, combuf, nat*3)
     CALL mp_bcast( combuf, ionode_id, intra_image_comm)
+    !
+    ! ... Convert the incoming configuration to the internal pwscf format
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: old coords ",tau
+    tau = RESHAPE( combuf, (/ 3 , nat /) )/alat  ! internally positions are in alat 
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: new coords ",tau
     !
   END SUBROUTINE read_coordinates
   !NOTE:
   !ALSO NEED qm_charge, mm_charge_all, mm_coord_all, mm_mask_all, type, mass
+  !
+  !
+  SUBROUTINE run_scf()
+    !
+    ! ... Run an scf calculation
+    !
+    CALL electrons()
+    IF ( .NOT. conv_elec ) THEN
+       CALL punch( 'all' )
+       CALL stop_run( conv_elec )
+    ENDIF
+    !
+  END SUBROUTINE run_scf
+  !
+  !
+  SUBROUTINE write_energy()
+    !
+    ! ... Writes the total energy
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Sending energy: ",etot
+    IF ( ionode ) CALL writebuffer(socket, etot)
+    !
+  END SUBROUTINE write_energy
   !>>>
   !
   !
