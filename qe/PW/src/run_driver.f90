@@ -190,6 +190,9 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
      CASE( "<ENERGY" )
         CALL write_energy()
         !
+     CASE( "<FORCE" )
+        CALL write_forces()
+        !
      CASE( "EXIT" )
         exit_status = 0
         RETURN
@@ -552,12 +555,30 @@ CONTAINS
   !
   SUBROUTINE write_energy()
     !
-    ! ... Writes the total energy
+    ! ... Write the total energy in a.u.
     !
-    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Sending energy: ",etot
-    IF ( ionode ) CALL writebuffer(socket, etot)
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Sending energy: ",0.5*etot
+    IF ( ionode ) CALL writebuffer(socket, 0.5*etot)
     !
   END SUBROUTINE write_energy
+  !
+  !
+  SUBROUTINE write_forces()
+    !
+    ! ... Compute forces
+    !
+    CALL forces()
+    !
+    ! ... Converts forces to a.u.
+    ! ... (so go from Ry to Ha)
+    !
+    combuf=RESHAPE(force, (/ 3 * nat /) ) * 0.5   ! force in a.u.
+    !
+    ! ... Write the forces
+    !
+    IF ( ionode ) CALL writebuffer( socket, combuf, 3 * nat)
+    !
+  END SUBROUTINE write_forces
   !>>>
   !
   !

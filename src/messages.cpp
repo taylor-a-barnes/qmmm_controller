@@ -354,6 +354,10 @@ int run_simulation()
     receive_array(qm_socket, &qm_energy, 1*sizeof(double));
     printf("Read energy from QE: %f\n",qm_energy);
 
+    //get the QM forces
+    send_label(qm_socket, "<FORCE");
+    receive_array(qm_socket, qm_force, (3*num_qm)*sizeof(double));
+
     //send the coordinates to the MM subset process
     send_array(mm_subset_socket, qm_coord, (3*num_qm)*sizeof(double));
 
@@ -362,7 +366,7 @@ int run_simulation()
     //printf("Read response label: %s\n",buffer);
 
     //zero the forces (SHOULD BE GETTING QM FORCES INSTEAD)
-    for (i=0; i<3*num_qm; i++) { qm_force[i] = 0.0; }
+    //for (i=0; i<3*num_qm; i++) { qm_force[i] = 0.0; }
     for (i=0; i<3*natoms; i++) { mm_force_all[i] = 0.0; }
     //for (i=0; i<3*num_qm; i++) { mm_force_on_qm_atoms[i] = 0.0; }
     receive_array(mm_subset_socket, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
