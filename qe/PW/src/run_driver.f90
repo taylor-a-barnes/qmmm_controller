@@ -47,6 +47,7 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
   USE ener,             ONLY : etot
   USE f90sockets,       ONLY : readbuffer, writebuffer
   USE extrapolation,    ONLY : update_file, update_pot
+  USE qmmm,             ONLY : qmmm_mode, qmmm_initialization
   !
   IMPLICIT NONE
   INTEGER, INTENT(OUT) :: exit_status
@@ -183,6 +184,9 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         !
      CASE( ">COORD" )
         CALL read_coordinates()
+        !
+     CASE( ">QMMM_MODE" )
+        CALL read_qmmm_mode()
         !
      CASE( "SCF" )
         CALL run_scf()
@@ -453,6 +457,19 @@ CONTAINS
     IF ( ionode ) write(*,*) " @ DRIVER MODE: Read number of atoms: ",nat
     !
   END SUBROUTINE set_nat
+  !
+  !
+  SUBROUTINE read_qmmm_mode()
+    ! ... Reads the number of atoms
+    !
+    IF ( ionode ) CALL readbuffer(socket, qmmm_mode)
+    CALL mp_bcast( qmmm_mode, ionode_id, intra_image_comm )
+    !
+    IF ( ionode ) write(*,*) " @ DRIVER MODE: Read qmmm mode: ",qmmm_mode
+    !
+    CALL qmmm_initialization()
+    !
+  END SUBROUTINE read_qmmm_mode
   !
   !
   SUBROUTINE read_cell()

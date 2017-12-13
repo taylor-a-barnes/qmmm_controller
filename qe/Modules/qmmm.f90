@@ -137,15 +137,17 @@ CONTAINS
     END IF
 
     ! only ionode communicates with MM master
-    IF (ionode) THEN
-       IF (qmmm_comm /= MPI_COMM_NULL) THEN
-#if defined(__MPI)
-          CALL mpi_send(nat_qm,1,MPI_INTEGER,0,QMMM_TAG_SIZE,qmmm_comm,ierr)
-#else
-          CALL errore( 'qmmm_initialization', 'Use of QM/MM requires compilation with MPI', 1 )
-#endif
-       END IF
-    END IF
+    !<<<
+!    IF (ionode) THEN
+!       IF (qmmm_comm /= MPI_COMM_NULL) THEN
+!#if defined(__MPI)
+!          CALL mpi_send(nat_qm,1,MPI_INTEGER,0,QMMM_TAG_SIZE,qmmm_comm,ierr)
+!#else
+!          CALL errore( 'qmmm_initialization', 'Use of QM/MM requires compilation with MPI', 1 )
+!#endif
+!       END IF
+!    END IF
+    !>>>
     CALL mp_bcast(nstep, ionode_id, world_comm)
     ! temporary storage
     ALLOCATE( tmp_buf(3,nat_qm) )

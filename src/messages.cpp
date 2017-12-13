@@ -302,6 +302,10 @@ int run_simulation()
     error("Initial message from LAMMPS is invalid");
   }
 
+  //send the QMMM mode to QE
+  send_label(qm_socket, ">QMMM_MODE");
+  send_array(qm_socket, &qm_mode, 1*sizeof(int));
+
   printf("Number of atoms: %i",num_qm);
 
   //begin the main MD loop
