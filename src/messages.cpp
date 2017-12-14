@@ -328,10 +328,21 @@ int run_simulation()
     //send_label(qm_socket, ">CELL");
     //send_cell(qm_socket);
 
-    //send the number of atoms to QE
+    //send the number of qm atoms to QE
     send_label(qm_socket, ">NAT");
     send_array(qm_socket, &num_qm, 1*sizeof(int));
 
+    //send the number of mm atoms to QE
+    send_label(qm_socket, ">NAT_MM");
+    send_array(qm_socket, &num_mm, 1*sizeof(int));
+
+    //send the number of atom types to QE
+    send_label(qm_socket, ">NTYPES");
+    send_array(qm_socket, &ntypes, 1*sizeof(int));
+
+    //send the MM cell information to QE
+    send_label(qm_socket, ">CELL_MM");
+    send_cell(qm_socket);
 
     //read the label - should be the coordinate information
     read_label(mm_socket, buffer);

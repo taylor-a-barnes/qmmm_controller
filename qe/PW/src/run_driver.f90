@@ -47,7 +47,8 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
   USE ener,             ONLY : etot
   USE f90sockets,       ONLY : readbuffer, writebuffer
   USE extrapolation,    ONLY : update_file, update_pot
-  USE qmmm,             ONLY : qmmm_mode, qmmm_initialization
+  USE qmmm,             ONLY : qmmm_mode, qmmm_initialization, set_mm_natoms, &
+                               set_qm_natoms, set_ntypes, set_cell_mm
   !
   IMPLICIT NONE
   INTEGER, INTENT(OUT) :: exit_status
@@ -178,6 +179,12 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
      CASE( ">NAT" )
         CALL set_nat()
         !
+     CASE( ">NAT_MM" )
+        CALL read_nat_mm()
+        !
+     CASE( ">NTYPES" )
+        CALL read_ntypes()
+        !
      CASE( ">CELL" )
         CALL read_cell()
         CALL update_cell()
@@ -187,6 +194,9 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         !
      CASE( ">QMMM_MODE" )
         CALL read_qmmm_mode()
+        !
+     CASE( ">CELL_MM" )
+        CALL read_cell_mm()
         !
      CASE( "SCF" )
         CALL run_scf()
@@ -456,7 +466,35 @@ CONTAINS
     !
     IF ( ionode ) write(*,*) " @ DRIVER MODE: Read number of atoms: ",nat
     !
+    CALL set_qm_natoms(nat)
+    !
   END SUBROUTINE set_nat
+  !
+  !
+  SUBROUTINE read_nat_mm()
+    INTEGER :: natoms_in
+    ! ... Reads the number of mm atoms
+    !
+    IF ( ionode ) CALL readbuffer(socket, natoms_in)
+    !
+    IF ( ionode ) write(*,*) " @ DRIVER MODE: Read mm natoms: ",natoms_in
+    !
+    CALL set_mm_natoms(natoms_in)
+    !
+  END SUBROUTINE read_nat_mm
+  !
+  !
+  SUBROUTINE read_ntypes()
+    INTEGER :: ntypes_in
+    ! ... Reads the number of atom types
+    !
+    IF ( ionode ) CALL readbuffer(socket, ntypes_in)
+    !
+    IF ( ionode ) write(*,*) " @ DRIVER MODE: Read ntypes: ",ntypes_in
+    !
+    CALL set_ntypes(ntypes_in)
+    !
+  END SUBROUTINE read_ntypes
   !
   !
   SUBROUTINE read_qmmm_mode()
@@ -535,6 +573,19 @@ CONTAINS
        CALL hinit1()
     END IF
   END SUBROUTINE update_cell
+  !
+  !
+  SUBROUTINE read_cell_mm()
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading MM cell "
+    !
+    ! ... Read the dimensions of the MM cell
+    !
+    IF ( ionode ) CALL readbuffer(socket, mtxbuffer, 9)
+    !
+    CALL set_cell_mm(mtxbuffer)
+    !
+  END SUBROUTINE read_cell_mm
   !
   !
   SUBROUTINE read_coordinates()

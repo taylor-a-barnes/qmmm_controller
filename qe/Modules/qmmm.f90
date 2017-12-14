@@ -76,6 +76,7 @@ MODULE qmmm
 
   PUBLIC :: qmmm_config, qmmm_initialization, qmmm_shutdown, qmmm_mode
   PUBLIC :: qmmm_update_positions, qmmm_update_forces, qmmm_add_esf, qmmm_force_esf
+  PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm
 
 CONTAINS
 
@@ -390,6 +391,123 @@ END SUBROUTINE qmmm_minimum_image
 #endif
 
   END SUBROUTINE qmmm_update_positions
+  !<<<
+
+
+  !---------------------------------------------------------------------!
+  ! update positions of the QM system from MM-master
+
+  SUBROUTINE set_cell_mm(cell_mm_in)
+    IMPLICIT NONE
+    REAL(DP), INTENT(IN) :: cell_mm_in(9)
+    INTEGER :: i
+
+    IF (qmmm_mode < 0) RETURN
+
+    DO i = 1, 9
+       cell_mm(i) = cell_mm_in(i)
+    END DO
+
+#if defined(__MPI)
+    CALL mp_bcast(cell_mm, ionode_id, world_comm )
+#endif
+
+    IF (ionode) THEN
+       WRITE(stdout,*)
+       WRITE(stdout,'(5X,A)') 'QMMM: cell_mm'
+       WRITE(stdout,'(11X,A,3F6.3)') 'X (lo,hi,len): ',cell_mm(1),cell_mm(4),cell_mm(4)-cell_mm(1)
+       WRITE(stdout,'(11X,A,3F6.3)') 'Y (lo,hi,len): ',cell_mm(2),cell_mm(5),cell_mm(5)-cell_mm(2)
+       WRITE(stdout,'(11X,A,3F6.3)') 'Z (lo,hi,len): ',cell_mm(3),cell_mm(6),cell_mm(6)-cell_mm(3)
+       WRITE(stdout,'(11X,A,3F6.3)') '  (xy,xz,yz) : ',cell_mm(7),cell_mm(8),cell_mm(9)
+    END IF
+
+  END SUBROUTINE set_cell_mm
+
+
+  !---------------------------------------------------------------------!
+  ! allocate arrays that depend on the number of mm atoms
+  !
+  SUBROUTINE set_mm_natoms(natoms_in)
+    INTEGER, INTENT(IN) :: natoms_in
+
+    IF (qmmm_mode < 0) RETURN
+
+    nat_mm = natoms_in
+
+#if defined(__MPI)
+    CALL mp_bcast( nat_mm, ionode_id, world_comm )
+#endif
+
+    IF( .NOT. ALLOCATED( rc_mm ) ) THEN
+        ALLOCATE( rc_mm( nat_mm ) )
+    END IF
+    IF( .NOT. ALLOCATED( tau_mm ) ) THEN
+        ALLOCATE( tau_mm( 3, nat_mm ) ) 
+    END IF
+    IF( .NOT. ALLOCATED( tau_mask ) ) THEN
+        ALLOCATE( tau_mask( nat_mm ) ) 
+    END IF
+    IF( .NOT. ALLOCATED( charge_mm ) ) THEN
+        ALLOCATE( charge_mm( nat_mm ) ) 
+    END IF
+    IF( .NOT. ALLOCATED( aradii ) ) THEN
+        ALLOCATE( aradii( nat_mm ) ) 
+    END IF
+    IF( .NOT. ALLOCATED( force_mm ) ) THEN
+        ALLOCATE( force_mm(3,nat_mm) )
+    END IF
+    IF( .NOT. ALLOCATED( types ) ) THEN
+        ALLOCATE( types( nat_mm ) )
+    END IF
+
+  END SUBROUTINE set_mm_natoms
+
+
+  !---------------------------------------------------------------------!
+  ! allocate arrays that depend on the number of qm atoms
+  !
+  SUBROUTINE set_qm_natoms(natoms_in)
+    INTEGER, INTENT(IN) :: natoms_in
+
+    IF (qmmm_mode < 0) RETURN
+
+    nat_qm = natoms_in
+
+#if defined(__MPI)
+    CALL mp_bcast( nat_qm, ionode_id, world_comm )
+#endif
+
+    IF( .NOT. ALLOCATED( charge ) ) THEN
+        ALLOCATE( charge(nat_qm) )
+    END IF
+    IF( .NOT. ALLOCATED( force_qm ) ) THEN
+        ALLOCATE( force_qm(3,nat_qm) )
+    END IF
+
+  END SUBROUTINE set_qm_natoms
+
+
+  !---------------------------------------------------------------------!
+  ! allocate arrays that depend on the number of atom types
+  !
+  SUBROUTINE set_ntypes(ntypes_in)
+    INTEGER, INTENT(IN) :: ntypes_in
+
+    IF (qmmm_mode < 0) RETURN
+
+    ntypes = ntypes_in
+
+#if defined(__MPI)
+    CALL mp_bcast( ntypes, ionode_id, world_comm )
+#endif
+
+    IF( .NOT. ALLOCATED( mass ) ) THEN
+        ! add 1 to take into account the atom type "0"
+        ALLOCATE( mass( ntypes + 1 ) ) 
+    END IF
+
+  END SUBROUTINE set_ntypes
+  !>>>
 
   !---------------------------------------------------------------------!
   ! communicate forces of the QM system to MM-master
