@@ -98,15 +98,15 @@ int QMMMClient::receive_initialization()
   ntypes = init[3];
 
   //initialize arrays for QM communication
-  qm_coord = ( double* )malloc( 3*num_qm );
-  qm_charge = ( double* )malloc( num_qm );
-  mm_charge_all = ( double* )malloc( natoms );
-  mm_coord_all = ( double* )malloc( 3*natoms );
-  mm_mask_all = ( int* )malloc( natoms );
-  type = ( int* )malloc( natoms );
-  mass = ( double* )malloc( ntypes+1 );
-  qm_force = ( double* )malloc( 3*num_qm );
-  mm_force_all = ( double* )malloc( 3*natoms );
+  qm_coord = ( double* )malloc( 3*num_qm * sizeof(double) );
+  qm_charge = ( double* )malloc( num_qm * sizeof(double) );
+  mm_charge_all = ( double* )malloc( natoms * sizeof(double) );
+  mm_coord_all = ( double* )malloc( 3*natoms * sizeof(double) );
+  mm_mask_all = ( int* )malloc( natoms * sizeof(int) );
+  type = ( int* )malloc( natoms * sizeof(int) );
+  mass = ( double* )malloc( ntypes+1 * sizeof(double) );
+  qm_force = ( double* )malloc( 3*num_qm * sizeof(double) );
+  mm_force_all = ( double* )malloc( 3*natoms * sizeof(double) );
 
 }
 

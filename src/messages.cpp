@@ -161,18 +161,19 @@ int initialize_client(char *name)
 
 int initialize_arrays()
 {
+  printf("$$$ NATOMS: %i\n",natoms);
   //initialize arrays for QM communication
-  qm_coord = ( double* )malloc( 3*num_qm );
-  qm_charge = ( double* )malloc( num_qm );
-  mm_charge_all = ( double* )malloc( natoms );
-  mm_coord_all = ( double* )malloc( 3*natoms );
-  mm_mask_all = ( int* )malloc( natoms );
-  type = ( int* )malloc( natoms );
-  mass = ( double* )malloc( ntypes+1 );
+  qm_coord = ( double* )malloc( 3*num_qm * sizeof(double) );
+  qm_charge = ( double* )malloc( num_qm * sizeof(double) );
+  mm_charge_all = ( double* )malloc( natoms * sizeof(double) );
+  mm_coord_all = ( double* )malloc( 3*natoms * sizeof(double) );
+  mm_mask_all = ( int* )malloc( natoms * sizeof(int) );
+  type = ( int* )malloc( natoms * sizeof(int) );
+  mass = ( double* )malloc( ntypes+1 * sizeof(double) );
 
-  qm_force = ( double* )malloc( 3*num_qm );
-  mm_force_all = ( double* )malloc( 3*natoms );
-  mm_force_on_qm_atoms = ( double* )malloc( 3*num_qm );
+  qm_force = ( double* )malloc( 3*num_qm * sizeof(double) );
+  mm_force_all = ( double* )malloc( 3*natoms * sizeof(double) );
+  mm_force_on_qm_atoms = ( double* )malloc( 3*num_qm * sizeof(double) );
 }
 
 
@@ -265,7 +266,7 @@ int run_simulation()
 {
   int iteration;
   int i;
-  int max_iterations = 101;
+  int max_iterations = 11;
   double qm_energy;
   
   printf("Running the simulation\n");
@@ -344,13 +345,6 @@ int run_simulation()
     send_label(qm_socket, ">MM_CELL");
     send_cell(qm_socket);
 
-    //send_label(qm_socket, ">MASK_MM");
-    //send_cell(qm_socket);
-
-    //send the MM charges to QE
-    send_label(qm_socket, ">MM_CHARGE");
-    send_array(qm_socket, mm_charge_all, num_mm*sizeof(double));
-
     //read the label - should be the coordinate information
     read_label(mm_socket, buffer);
     printf("Read new label: %s\n",buffer);
@@ -360,6 +354,14 @@ int run_simulation()
     else {
       error("Unexpected label");
     }
+
+    //send the MM mask, which describes which atoms are part of the QM subsystem
+    //send_label(qm_socket, ">MM_MASK");
+    //send_array(qm_socket, mm_mask_all, num_mm*sizeof(int));
+
+    //send the MM charges to QE
+    //send_label(qm_socket, ">MM_CHARGE");
+    //send_array(qm_socket, mm_charge_all, num_mm*sizeof(double));
 
     //send the coordinates to the QM process
     send_label(qm_socket, ">COORD");
@@ -582,6 +584,7 @@ int receive_coordinates(int sock)
 {
   int i;
 
+
   receive_array(sock, qm_coord, (3*num_qm)*sizeof(double));
   receive_array(sock, qm_charge, (num_qm)*sizeof(double));
   receive_array(sock, mm_charge_all, (natoms)*sizeof(double));
@@ -597,6 +600,7 @@ int receive_coordinates(int sock)
   for (i=0; i < 3*natoms; i++) {
     mm_coord_all[i] = mm_coord_all[i]*angstrom_to_bohr;
   }
+
 }
 
 

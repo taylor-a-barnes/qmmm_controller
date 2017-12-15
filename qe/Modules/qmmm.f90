@@ -77,7 +77,8 @@ MODULE qmmm
 
   PUBLIC :: qmmm_config, qmmm_initialization, qmmm_shutdown, qmmm_mode
   PUBLIC :: qmmm_update_positions, qmmm_update_forces, qmmm_add_esf, qmmm_force_esf
-  PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm, read_charge_mm
+  PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm, read_mm_charge
+  PUBLIC :: read_mm_mask
 
 CONTAINS
 
@@ -837,7 +838,7 @@ END SUBROUTINE qmmm_minimum_image
   !---------------------------------------------------------------------!
   !
   !
-  SUBROUTINE read_charge_mm(socketfd)
+  SUBROUTINE read_mm_charge(socketfd)
     INTEGER, INTENT(IN) :: socketfd
     INTEGER :: i
     !
@@ -848,7 +849,7 @@ END SUBROUTINE qmmm_minimum_image
     IF ( ionode ) CALL readbuffer(socketfd, charge_mm, nat_mm)
     !
 #if defined(__MPI)
-    CALL mp_bcast(charge_mm, ionode_id, world_comm)    
+    CALL mp_bcast(charge_mm, ionode_id, world_comm)
 #endif
     !
     ! clear charge for QM atoms
@@ -867,7 +868,23 @@ END SUBROUTINE qmmm_minimum_image
        END DO
     END IF
     !
-  END SUBROUTINE read_charge_mm
+  END SUBROUTINE read_mm_charge
+  !
+  !
+  SUBROUTINE read_mm_mask(socketfd)
+    INTEGER, INTENT(IN) :: socketfd
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading MM mask"
+    !
+    ! ... Read the dimensions of the MM cell
+    !
+    IF ( ionode ) CALL readbuffer(socketfd, tau_mask, nat_mm)
+    !
+#if defined(__MPI)
+    CALL mp_bcast(tau_mask, ionode_id, world_comm)
+#endif
+    !
+  END SUBROUTINE read_mm_mask
 
   !>>>
 

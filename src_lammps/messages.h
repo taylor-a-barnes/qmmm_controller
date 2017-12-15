@@ -72,7 +72,7 @@ class QMMMClient {
   double *mm_coord_all;
   int *mm_mask_all;
   int *type;
-  int *mass;
+  double *mass;
 
   double *qm_force;
   double *mm_force_all;
