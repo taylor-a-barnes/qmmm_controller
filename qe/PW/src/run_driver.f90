@@ -180,7 +180,7 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
      CASE( ">NAT" )
         CALL set_nat()
         !
-     CASE( ">NAT_MM" )
+     CASE( ">MM_NAT" )
         CALL read_nat_mm()
         !
      CASE( ">NTYPES" )
@@ -196,10 +196,10 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
      CASE( ">QMMM_MODE" )
         CALL read_qmmm_mode()
         !
-     CASE( ">CELL_MM" )
+     CASE( ">MM_CELL" )
         CALL read_cell_mm()
         !
-     CASE( ">CHARGE_MM" )
+     CASE( ">MM_CHARGE" )
         CALL read_charge_mm(socket)
         !
      CASE( "SCF" )

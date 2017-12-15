@@ -333,7 +333,7 @@ int run_simulation()
     send_array(qm_socket, &num_qm, 1*sizeof(int));
 
     //send the number of mm atoms to QE
-    send_label(qm_socket, ">NAT_MM");
+    send_label(qm_socket, ">MM_NAT");
     send_array(qm_socket, &num_mm, 1*sizeof(int));
 
     //send the number of atom types to QE
@@ -341,14 +341,14 @@ int run_simulation()
     send_array(qm_socket, &ntypes, 1*sizeof(int));
 
     //send the MM cell information to QE
-    send_label(qm_socket, ">CELL_MM");
+    send_label(qm_socket, ">MM_CELL");
     send_cell(qm_socket);
 
     //send_label(qm_socket, ">MASK_MM");
     //send_cell(qm_socket);
 
     //send the MM charges to QE
-    send_label(qm_socket, ">CHARGE_MM");
+    send_label(qm_socket, ">MM_CHARGE");
     send_array(qm_socket, mm_charge_all, num_mm*sizeof(double));
 
     //read the label - should be the coordinate information
