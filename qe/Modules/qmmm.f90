@@ -13,6 +13,7 @@ MODULE qmmm
   USE mp_global,        ONLY : me_pool, intra_pool_comm ! added
   USE mp,               ONLY : mp_bcast, mp_barrier, mp_abort, mp_sum ! added
   USE kinds,            ONLY : DP
+  USE f90sockets,       ONLY : readbuffer, writebuffer
   USE parallel_include
   IMPLICIT NONE
   !
@@ -76,7 +77,7 @@ MODULE qmmm
 
   PUBLIC :: qmmm_config, qmmm_initialization, qmmm_shutdown, qmmm_mode
   PUBLIC :: qmmm_update_positions, qmmm_update_forces, qmmm_add_esf, qmmm_force_esf
-  PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm
+  PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm, read_charge_mm
 
 CONTAINS
 
@@ -433,6 +434,7 @@ END SUBROUTINE qmmm_minimum_image
     IF (qmmm_mode < 0) RETURN
 
     nat_mm = natoms_in
+    nat_all = natoms_in
 
 #if defined(__MPI)
     CALL mp_bcast( nat_mm, ionode_id, world_comm )
@@ -830,6 +832,44 @@ END SUBROUTINE qmmm_minimum_image
     RETURN
     
   END SUBROUTINE qmmm_force_esf
+
+  !<<<
+  !---------------------------------------------------------------------!
+  !
+  !
+  SUBROUTINE read_charge_mm(socketfd)
+    INTEGER, INTENT(IN) :: socketfd
+    INTEGER :: i
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading MM charges"
+    !
+    ! ... Read the dimensions of the MM cell
+    !
+    IF ( ionode ) CALL readbuffer(socketfd, charge_mm, nat_mm)
+    !
+#if defined(__MPI)
+    CALL mp_bcast(charge_mm, ionode_id, world_comm)    
+#endif
+    !
+    ! clear charge for QM atoms
+    DO i = 1, nat_mm
+       IF(tau_mask(i) .eq. -1)CYCLE
+       charge_mm(i) = 0.0d0
+    ENDDO
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: nat_all",nat_all
+    !
+    IF (ionode) THEN
+       WRITE(stdout,*)
+       DO i = 1, nat_all
+           WRITE(stdout,'(5X,A,3F10.6,2X,A,F10.6,2X,A,I2)') &
+                'QMMM: tau_mm ',tau_mm(:,i),' charge_mm ',charge_mm(i),' QA ',tau_mask(i)
+       END DO
+    END IF
+    !
+  END SUBROUTINE read_charge_mm
+
+  !>>>
 
   !---------------------------------------------------------------------!
 

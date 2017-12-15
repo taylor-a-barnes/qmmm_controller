@@ -344,6 +344,13 @@ int run_simulation()
     send_label(qm_socket, ">CELL_MM");
     send_cell(qm_socket);
 
+    //send_label(qm_socket, ">MASK_MM");
+    //send_cell(qm_socket);
+
+    //send the MM charges to QE
+    send_label(qm_socket, ">CHARGE_MM");
+    send_array(qm_socket, mm_charge_all, num_mm*sizeof(double));
+
     //read the label - should be the coordinate information
     read_label(mm_socket, buffer);
     printf("Read new label: %s\n",buffer);

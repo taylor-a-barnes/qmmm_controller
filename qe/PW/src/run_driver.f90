@@ -48,7 +48,8 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
   USE f90sockets,       ONLY : readbuffer, writebuffer
   USE extrapolation,    ONLY : update_file, update_pot
   USE qmmm,             ONLY : qmmm_mode, qmmm_initialization, set_mm_natoms, &
-                               set_qm_natoms, set_ntypes, set_cell_mm
+                               set_qm_natoms, set_ntypes, set_cell_mm, &
+                               read_charge_mm
   !
   IMPLICIT NONE
   INTEGER, INTENT(OUT) :: exit_status
@@ -197,6 +198,9 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         !
      CASE( ">CELL_MM" )
         CALL read_cell_mm()
+        !
+     CASE( ">CHARGE_MM" )
+        CALL read_charge_mm(socket)
         !
      CASE( "SCF" )
         CALL run_scf()
