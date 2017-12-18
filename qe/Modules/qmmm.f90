@@ -78,7 +78,7 @@ MODULE qmmm
   PUBLIC :: qmmm_config, qmmm_initialization, qmmm_shutdown, qmmm_mode
   PUBLIC :: qmmm_update_positions, qmmm_update_forces, qmmm_add_esf, qmmm_force_esf
   PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm, read_mm_charge
-  PUBLIC :: read_mm_mask, read_mm_coord, read_types
+  PUBLIC :: read_mm_mask, read_mm_coord, read_types, read_mass
 
 CONTAINS
 
@@ -922,6 +922,22 @@ END SUBROUTINE qmmm_minimum_image
 #endif
     !
   END SUBROUTINE read_types
+  !
+  !
+  SUBROUTINE read_mass(socketfd)
+    INTEGER, INTENT(IN) :: socketfd
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading MM types"
+    !
+    ! ... Read the dimensions of the MM cell
+    !
+    IF ( ionode ) CALL readbuffer(socketfd, mass, ntypes+1)
+    !
+#if defined(__MPI)
+    CALL mp_bcast(mass, ionode_id, world_comm)
+#endif
+    !
+  END SUBROUTINE read_mass
 
   !>>>
 

@@ -50,7 +50,7 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
   USE qmmm,             ONLY : qmmm_mode, qmmm_initialization, set_mm_natoms, &
                                set_qm_natoms, set_ntypes, set_cell_mm, &
                                read_mm_charge, read_mm_mask, read_mm_coord, &
-                               read_types
+                               read_types, read_mass
   !
   IMPLICIT NONE
   INTEGER, INTENT(OUT) :: exit_status
@@ -211,6 +211,9 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         !
      CASE( ">MM_TYPE" )
         CALL read_types(socket)
+        !
+     CASE( ">MM_MASS" )
+        CALL read_mass(socket)
         !
      CASE( "SCF" )
         CALL run_scf()
