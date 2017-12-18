@@ -78,7 +78,7 @@ MODULE qmmm
   PUBLIC :: qmmm_config, qmmm_initialization, qmmm_shutdown, qmmm_mode
   PUBLIC :: qmmm_update_positions, qmmm_update_forces, qmmm_add_esf, qmmm_force_esf
   PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm, read_mm_charge
-  PUBLIC :: read_mm_mask, read_mm_coord
+  PUBLIC :: read_mm_mask, read_mm_coord, read_types
 
 CONTAINS
 
@@ -902,10 +902,26 @@ END SUBROUTINE qmmm_minimum_image
     tau_mm = tau_mm / alat ! internally positions are in alat
     !
 #if defined(__MPI)
-    CALL mp_bcast(tau_mask, ionode_id, world_comm)
+    CALL mp_bcast(tau_mm, ionode_id, world_comm)
 #endif
     !
   END SUBROUTINE read_mm_coord
+  !
+  !
+  SUBROUTINE read_types(socketfd)
+    INTEGER, INTENT(IN) :: socketfd
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading MM types"
+    !
+    ! ... Read the dimensions of the MM cell
+    !
+    IF ( ionode ) CALL readbuffer(socketfd, types, nat_mm)
+    !
+#if defined(__MPI)
+    CALL mp_bcast(types, ionode_id, world_comm)
+#endif
+    !
+  END SUBROUTINE read_types
 
   !>>>
 
