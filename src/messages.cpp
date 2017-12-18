@@ -356,12 +356,16 @@ int run_simulation()
     }
 
     //send the MM mask, which describes which atoms are part of the QM subsystem
-    //send_label(qm_socket, ">MM_MASK");
-    //send_array(qm_socket, mm_mask_all, num_mm*sizeof(int));
+    send_label(qm_socket, ">MM_MASK");
+    send_array(qm_socket, mm_mask_all, num_mm*sizeof(int));
+
+    //send the MM coordinates to QE
+    send_label(qm_socket, ">MM_COORD");
+    send_array(qm_socket, mm_coord_all, (3*num_mm)*sizeof(double));
 
     //send the MM charges to QE
-    //send_label(qm_socket, ">MM_CHARGE");
-    //send_array(qm_socket, mm_charge_all, num_mm*sizeof(double));
+    send_label(qm_socket, ">MM_CHARGE");
+    send_array(qm_socket, mm_charge_all, num_mm*sizeof(double));
 
     //send the coordinates to the QM process
     send_label(qm_socket, ">COORD");

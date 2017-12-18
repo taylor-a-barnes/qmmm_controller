@@ -49,7 +49,7 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
   USE extrapolation,    ONLY : update_file, update_pot
   USE qmmm,             ONLY : qmmm_mode, qmmm_initialization, set_mm_natoms, &
                                set_qm_natoms, set_ntypes, set_cell_mm, &
-                               read_mm_charge, read_mm_mask
+                               read_mm_charge, read_mm_mask, read_mm_coord
   !
   IMPLICIT NONE
   INTEGER, INTENT(OUT) :: exit_status
@@ -204,6 +204,9 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         !
      CASE( ">MM_MASK" )
         CALL read_mm_mask(socket)
+        !
+     CASE( ">MM_COORD" )
+        CALL read_mm_coord(socket)
         !
      CASE( "SCF" )
         CALL run_scf()

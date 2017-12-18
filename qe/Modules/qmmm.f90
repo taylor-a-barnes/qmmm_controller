@@ -78,7 +78,7 @@ MODULE qmmm
   PUBLIC :: qmmm_config, qmmm_initialization, qmmm_shutdown, qmmm_mode
   PUBLIC :: qmmm_update_positions, qmmm_update_forces, qmmm_add_esf, qmmm_force_esf
   PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm, read_mm_charge
-  PUBLIC :: read_mm_mask
+  PUBLIC :: read_mm_mask, read_mm_coord
 
 CONTAINS
 
@@ -885,6 +885,27 @@ END SUBROUTINE qmmm_minimum_image
 #endif
     !
   END SUBROUTINE read_mm_mask
+  !
+  !
+  SUBROUTINE read_mm_coord(socketfd)
+    USE cell_base, ONLY : alat
+    INTEGER, INTENT(IN) :: socketfd
+    REAL(DP) :: buf(3*nat_mm)
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading MM coordinates"
+    !
+    ! ... Read the dimensions of the MM cell
+    !
+    IF ( ionode ) CALL readbuffer(socketfd, buf, 3*nat_mm)
+    tau_mm = RESHAPE(buf, (/3,nat_mm/))
+    !
+    tau_mm = tau_mm / alat ! internally positions are in alat
+    !
+#if defined(__MPI)
+    CALL mp_bcast(tau_mask, ionode_id, world_comm)
+#endif
+    !
+  END SUBROUTINE read_mm_coord
 
   !>>>
 
