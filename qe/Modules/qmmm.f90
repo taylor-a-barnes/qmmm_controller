@@ -925,6 +925,8 @@ END SUBROUTINE qmmm_minimum_image
   !
   !
   SUBROUTINE read_mass(socketfd)
+    USE cell_base, ONLY : alat
+    USE constants, ONLY : bohr_radius_angs
     INTEGER, INTENT(IN) :: socketfd
     !
     IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading MM types"
@@ -936,6 +938,20 @@ END SUBROUTINE qmmm_minimum_image
 #if defined(__MPI)
     CALL mp_bcast(mass, ionode_id, world_comm)
 #endif
+    !
+    ! do pre-forces work
+    IF (ionode) THEN
+
+        CALL qmmm_center_molecule
+        CALL qmmm_minimum_image
+
+        ! set atomic radii
+        CALL ec_fill_radii( aradii, nat_mm, mass, types, ntypes, 1 )
+
+    END IF
+    rc_mm = aradii
+    ! Convert radii to Bohr units
+    rc_mm = rc_mm / (alat * bohr_radius_angs)
     !
   END SUBROUTINE read_mass
 

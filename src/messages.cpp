@@ -367,13 +367,13 @@ int run_simulation()
     send_label(qm_socket, ">MM_TYPE");
     send_array(qm_socket, type, num_mm*sizeof(int));
 
-    //send the MM coordinates to QE
-    send_label(qm_socket, ">MM_MASS");
-    send_array(qm_socket, type, (ntypes+1)*sizeof(double));
-
     //send the MM charges to QE
     send_label(qm_socket, ">MM_CHARGE");
     send_array(qm_socket, mm_charge_all, num_mm*sizeof(double));
+
+    //send the MM coordinates to QE
+    send_label(qm_socket, ">MM_MASS");
+    send_array(qm_socket, mass, (ntypes+1)*sizeof(double));
 
     //send the coordinates to the QM process
     send_label(qm_socket, ">COORD");
