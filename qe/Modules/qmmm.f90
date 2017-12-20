@@ -78,7 +78,7 @@ MODULE qmmm
   PUBLIC :: qmmm_config, qmmm_initialization, qmmm_shutdown, qmmm_mode
   PUBLIC :: qmmm_update_positions, qmmm_update_forces, qmmm_add_esf, qmmm_force_esf
   PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm, read_mm_charge
-  PUBLIC :: read_mm_mask, read_mm_coord, read_types, read_mass
+  PUBLIC :: read_mm_mask, read_mm_coord, read_types, read_mass, write_ec_force
 
 CONTAINS
 
@@ -954,6 +954,30 @@ END SUBROUTINE qmmm_minimum_image
     rc_mm = rc_mm / (alat * bohr_radius_angs)
     !
   END SUBROUTINE read_mass
+
+  !---------------------------------------------------------------------!
+  ! communicate forces of the QM system to MM-master
+  !
+  SUBROUTINE write_ec_force( sockfd )
+    !
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: sockfd
+    REAL(DP) :: buf(3*nat_qm)
+    
+
+    IF (qmmm_mode .ne. 2) RETURN
+
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Writing EC forces on QM atoms"
+
+    IF (ionode) THEN
+        !
+        buf=RESHAPE(force_qm, (/ 3 * nat_qm /) ) * 0.5   ! force in a.u.
+        !
+        CALL writebuffer(sockfd, buf, 3*nat_qm)
+        !
+    END IF
+
+  END SUBROUTINE write_ec_force
 
   !>>>
 

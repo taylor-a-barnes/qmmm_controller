@@ -74,6 +74,8 @@ double *qm_force;
 double *mm_force_all;
 double *mm_force_on_qm_atoms;
 
+double *qm_ec_force;
+
 int qm_mode;
 int qm_verbose;
 int qm_steps;

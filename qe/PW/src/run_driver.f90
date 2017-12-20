@@ -50,7 +50,7 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
   USE qmmm,             ONLY : qmmm_mode, qmmm_initialization, set_mm_natoms, &
                                set_qm_natoms, set_ntypes, set_cell_mm, &
                                read_mm_charge, read_mm_mask, read_mm_coord, &
-                               read_types, read_mass
+                               read_types, read_mass, write_ec_force
   !
   IMPLICIT NONE
   INTEGER, INTENT(OUT) :: exit_status
@@ -223,6 +223,9 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         !
      CASE( "<FORCE" )
         CALL write_forces()
+        !
+     CASE( "<EC_FORCE" )
+        CALL write_ec_force(socket)
         !
      CASE( "EXIT" )
         exit_status = 0
@@ -573,22 +576,6 @@ CONTAINS
     !
     lgreset = ( ABS ( omega_reset - omega ) / omega .GT. gvec_omega_tol )
     !
-    ! ... Initialize the G-Vectors when needed
-    !
-    IF ( lgreset ) THEN
-       !
-       ! ... Reinitialize the G-Vectors if the cell is changed
-       !
-       CALL initialize_g_vectors()
-       !
-    ELSE
-       !
-       ! ... Update only atomic position and potential from the history
-       ! ... if the cell did not change too much
-       !
-       CALL update_pot()
-       CALL hinit1()
-    END IF
   END SUBROUTINE update_cell
   !
   !
@@ -626,6 +613,24 @@ CONTAINS
   !
   !
   SUBROUTINE run_scf()
+    !
+    ! ... Initialize the G-Vectors when needed
+    !
+    IF ( lgreset ) THEN
+       !
+       ! ... Reinitialize the G-Vectors if the cell is changed
+       !
+       CALL initialize_g_vectors()
+       lgreset = .false.
+       !
+    ELSE
+       !
+       ! ... Update only atomic position and potential from the history
+       ! ... if the cell did not change too much
+       !
+       CALL update_pot()
+       CALL hinit1()
+    END IF
     !
     ! ... Run an scf calculation
     !

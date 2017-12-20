@@ -174,6 +174,8 @@ int initialize_arrays()
   qm_force = ( double* )malloc( 3*num_qm * sizeof(double) );
   mm_force_all = ( double* )malloc( 3*natoms * sizeof(double) );
   mm_force_on_qm_atoms = ( double* )malloc( 3*num_qm * sizeof(double) );
+
+  qm_ec_force = ( double* )malloc( 3*num_qm * sizeof(double) );
 }
 
 
@@ -393,6 +395,16 @@ int run_simulation()
     //get the QM forces
     send_label(qm_socket, "<FORCE");
     receive_array(qm_socket, qm_force, (3*num_qm)*sizeof(double));
+
+    //get the EC forces on the QM atoms
+    if ( qm_mode == 2 ) {
+      send_label(qm_socket, "<EC_FORCE");
+      receive_array(qm_socket, qm_ec_force, (3*num_qm)*sizeof(double));
+      
+      for (i=0; i<3*num_qm; i++) {
+      	qm_force[i] += qm_ec_force[i];
+      }
+    }
 
     //send the coordinates to the MM subset process
     send_array(mm_subset_socket, qm_coord, (3*num_qm)*sizeof(double));
