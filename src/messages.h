@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include "../lib/sockets.h"
+#include "../lib/qmmm_aux.c"
 
 #define SOCKET_NAME "./9Lq7BNBnBycd6nxy.socket"
 //#define BUFFER_SIZE 12
@@ -75,6 +76,7 @@ double *mm_force_all;
 double *mm_force_on_qm_atoms;
 
 double *qm_ec_force;
+double *aradii;
 
 int qm_mode;
 int qm_verbose;

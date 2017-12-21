@@ -176,6 +176,7 @@ int initialize_arrays()
   mm_force_on_qm_atoms = ( double* )malloc( 3*num_qm * sizeof(double) );
 
   qm_ec_force = ( double* )malloc( 3*num_qm * sizeof(double) );
+  aradii = ( double* )malloc( num_mm * sizeof(double) );
 }
 
 
@@ -376,6 +377,12 @@ int run_simulation()
     //send the MM coordinates to QE
     send_label(qm_socket, ">MM_MASS");
     send_array(qm_socket, mass, (ntypes+1)*sizeof(double));
+
+    //get the aradii
+    ec_fill_radii(aradii,&num_mm,mass,type,&ntypes);
+    for (i=0; i<num_mm; i++) {
+      printf("aradii: %i %f\n",i+1,aradii[i]);
+    }
 
     //send the coordinates to the QM process
     send_label(qm_socket, ">COORD");
