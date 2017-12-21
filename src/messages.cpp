@@ -396,15 +396,22 @@ int run_simulation()
     send_label(qm_socket, "<FORCE");
     receive_array(qm_socket, qm_force, (3*num_qm)*sizeof(double));
 
-    //get the EC forces on the QM atoms
     if ( qm_mode == 2 ) {
+      
+      //get the EC forces on the QM atoms
       send_label(qm_socket, "<EC_FORCE");
       receive_array(qm_socket, qm_ec_force, (3*num_qm)*sizeof(double));
       
       for (i=0; i<3*num_qm; i++) {
       	qm_force[i] += qm_ec_force[i];
       }
+
+      //get the EC forces on the MM atoms
+      printf("Requesting MM_FORCE from QE: %i\n",qm_mode);
+      send_label(qm_socket, "<MM_FORCE");
+      receive_array(qm_socket, mm_force_all, (3*num_mm)*sizeof(double));
     }
+
 
     //send the coordinates to the MM subset process
     send_array(mm_subset_socket, qm_coord, (3*num_qm)*sizeof(double));
@@ -415,7 +422,7 @@ int run_simulation()
 
     //zero the forces (SHOULD BE GETTING QM FORCES INSTEAD)
     //for (i=0; i<3*num_qm; i++) { qm_force[i] = 0.0; }
-    for (i=0; i<3*natoms; i++) { mm_force_all[i] = 0.0; }
+    //for (i=0; i<3*natoms; i++) { mm_force_all[i] = 0.0; }
     //for (i=0; i<3*num_qm; i++) { mm_force_on_qm_atoms[i] = 0.0; }
     receive_array(mm_subset_socket, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
 

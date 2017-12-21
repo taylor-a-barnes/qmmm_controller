@@ -79,6 +79,7 @@ MODULE qmmm
   PUBLIC :: qmmm_update_positions, qmmm_update_forces, qmmm_add_esf, qmmm_force_esf
   PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm, read_mm_charge
   PUBLIC :: read_mm_mask, read_mm_coord, read_types, read_mass, write_ec_force
+  PUBLIC :: write_mm_force
 
 CONTAINS
 
@@ -978,6 +979,37 @@ END SUBROUTINE qmmm_minimum_image
     END IF
 
   END SUBROUTINE write_ec_force
+
+  !---------------------------------------------------------------------!
+  ! communicate forces of the QM system to MM-master
+  !
+  SUBROUTINE write_mm_force( sockfd, rho, nspin, dfftp )
+    !
+    USE fft_types,          ONLY : fft_type_descriptor
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: sockfd
+    REAL(DP) :: rho(:,:)
+    INTEGER  :: nspin
+    TYPE(fft_type_descriptor) :: dfftp
+    REAL(DP) :: buf(3*nat_mm)
+
+    IF (qmmm_mode .ne. 2) RETURN
+
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Writing EC forces on MM atoms"
+
+    IF (ionode .and. (qmmm_verb > 0)) &
+         WRITE(stdout,'(/,5X,A)') 'QMMM: compute EC forces'
+    CALL qmmm_force_esf( rho, nspin, dfftp )
+
+    IF (ionode) THEN
+        IF (qmmm_verb > 0) WRITE(stdout,'(5X,A)') 'QMMM: update forces'
+        !
+        !!!! Note, not used if ec_alg is false. Optimize excluding this send as well
+        buf=RESHAPE(force_mm, (/ 3 * nat_mm /) ) * 0.5   ! force in a.u.
+        CALL writebuffer(sockfd, buf, 3*nat_mm)
+    END IF
+
+  END SUBROUTINE write_mm_force
 
   !>>>
 

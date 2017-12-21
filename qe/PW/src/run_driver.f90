@@ -50,7 +50,11 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
   USE qmmm,             ONLY : qmmm_mode, qmmm_initialization, set_mm_natoms, &
                                set_qm_natoms, set_ntypes, set_cell_mm, &
                                read_mm_charge, read_mm_mask, read_mm_coord, &
-                               read_types, read_mass, write_ec_force
+                               read_types, read_mass, write_ec_force, &
+                               write_mm_force
+  USE scf,              ONLY : rho
+  USE lsda_mod,         ONLY : nspin
+  USE fft_base,         ONLY : dfftp
   !
   IMPLICIT NONE
   INTEGER, INTENT(OUT) :: exit_status
@@ -226,6 +230,9 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         !
      CASE( "<EC_FORCE" )
         CALL write_ec_force(socket)
+        !
+     CASE( "<MM_FORCE" )
+        CALL write_mm_force(socket, rho%of_r, nspin, dfftp)
         !
      CASE( "EXIT" )
         exit_status = 0
