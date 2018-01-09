@@ -33,6 +33,7 @@ int initialize_socket(char *name)
   int sockfd;
   struct sockaddr_in serv_addr;
   int port;
+  int reuse_value = 1;
 
   port = 8021;
 
@@ -55,7 +56,8 @@ int initialize_socket(char *name)
   serv_addr.sin_port = htons(port);
 
   //enable reuse of the socket
-  ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
+  //ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
+  ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse_value, sizeof(int));
   if (ret < 0) {
     error("Could not reuse socket");
   }
