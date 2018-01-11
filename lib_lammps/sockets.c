@@ -1,5 +1,6 @@
 /* Library for sending and receiving messagess through sockets */
-#include <cstdlib>
+//#include <cstdlib>
+#include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
@@ -35,10 +36,10 @@ int send_label(int socket, char *msg)
   for (i=0; i<BUFFER_SIZE; i++)
   {
     if( buffer[i] == '\0' ) {
-      str_end =true;
+      str_end = true;
     }
     if( str_end ) {
-      buffer[i] = ' ';
+      buffer[i] = ' '; 
     }
   }
 
@@ -50,7 +51,7 @@ int send_label(int socket, char *msg)
       error("Could not write to socket");
     }
     else if (ret == 0) {
-      error("Wrote label message of size zero");
+      error("Wrote message of size zero");
     }
     else {
       buf += ret;
@@ -78,7 +79,8 @@ int read_label(int socket, char *buf)
       error("Could not read message");
     }
     else if (ret == 0) {
-      error("Read label message of size zero");
+      printf("Hit zero-sized message with remaining: %i %i",remaining,BUFFER_SIZE);
+      error("Read label of size zero");
     }
     else {
       buf += ret;
@@ -86,7 +88,7 @@ int read_label(int socket, char *buf)
     }
   }
   while (remaining > 0);
-  
+
   buf -= BUFFER_SIZE;
   for (i=0; i<BUFFER_SIZE; i++)
   {

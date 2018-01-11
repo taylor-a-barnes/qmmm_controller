@@ -11,7 +11,7 @@
 #define QE_LIBQMMM_H
 
 //<<<
-#include "../../src/USER-QMMM/messages.h"
+//#include "../../src/USER-QMMM/messages.h"
 //>>>
 
 #ifdef __cplusplus
@@ -53,7 +53,7 @@ typedef struct {
   char *handle;                 /* handle for SHEMEM communication */
   int my_comm, qm_comm, mm_comm; /* MPI communicators, Fortran-style */
   //<<<
-  QMMM_CLIENT::QMMMClient client;
+  //QMMM_CLIENT::QMMMClient client;
   //>>>
 } qmmm_config_t;
 

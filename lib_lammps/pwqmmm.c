@@ -63,11 +63,11 @@ int main(int argc, char **argv)
     //The driver will tell whether this calculation handles the MM or QM parts
     printf("Calling initialize client\n");
     //qmmmcfg.client.socket_to_driver = qmmmcfg.client.initialize_socket("./driver.socket");
-    qmmmcfg.client.initialize_client();
+    initialize_client();
     printf("Finished calling initialize client\n");
 
     //receive the role of this process
-    read_label(qmmmcfg.client.socket_to_driver, buffer);
+    read_label(qmmm_interface.socket_to_driver, buffer);
     printf("Read label: %s\n",buffer);
 
     //MPI_Finalize();
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
       qmmmcfg.role = QMMM_ROLE_MASTER;
       
       //send information about the qm part of the calculation
-      qmmmcfg.client.send_qm_information(qmmmcfg.client.socket_to_driver, 
+      send_qm_information(qmmm_interface.socket_to_driver, 
              qmmmcfg.qmmm_mode, qmmmcfg.verbose, qmmmcfg.steps);
     }
     else if( strcmp(buffer,"SLAVE") == 0 ) {

@@ -24,14 +24,14 @@
 #include "error.h"
 #include "group.h"
 #include "memory.h"
-//<<<
-#include "messages.h"
-//>>>
 
 #include <stdlib.h>
 #include <string.h>
 
 #include "libqmmm.h"
+//<<<
+#include "../../lib/qmmm/messages.h"
+//>>>
 
 // message tags for QM/MM inter communicator communication
 // have to match with those from the QM code
@@ -449,8 +449,8 @@ void FixQMMM::exchange_positions()
       if (screen) fputs("CALLING SEND_CELL\n",screen);
       if (logfile) fputs("CALLING SEND_CELL\n",logfile);
       //qmmmcfg.client.send_cell();
-      send_label(qmmmcfg.client.socket_to_driver, "CELL");
-      send_array(qmmmcfg.client.socket_to_driver, celldata, sizeof(celldata));
+      send_label(qmmm_interface.socket_to_driver, "CELL");
+      send_array(qmmm_interface.socket_to_driver, celldata, sizeof(celldata));
       if (screen) fputs("CALLED SEND_CELL\n",screen);
       if (logfile) fputs("CALLED SEND_CELL\n",logfile);
       //>>>
@@ -508,7 +508,7 @@ void FixQMMM::exchange_positions()
       MPI_Send(type, natoms, MPI_INT, 1, QMMM_TAG_TYPE, qm_comm);
       MPI_Send(mass, ntypes+1, MPI_DOUBLE, 1, QMMM_TAG_MASS, qm_comm);
       */
-      qmmmcfg.client.send_coordinates(qm_coord, qm_charge, mm_charge_all, mm_coord_all, mm_mask_all, type, mass);
+      send_coordinates(qm_coord, qm_charge, mm_charge_all, mm_coord_all, mm_mask_all, type, mass);
       //>>>
 
       /* to MM slave code */
@@ -530,9 +530,9 @@ void FixQMMM::exchange_positions()
     //MPI_Recv(qm_coord, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_COORD, mm_comm, MPI_STATUS_IGNORE);
     /* receive the new QM coordinates from the server */
     printf("Receiving QM coordinates\n");
-    printf("Using socket: %i\n",qmmmcfg.client.socket_to_driver);
+    printf("Using socket: %i\n",qmmm_interface.socket_to_driver);
     printf("Bytes: %i\n",(3*num_qm)*sizeof(double));
-    qmmmcfg.client.receive_qm_coordinates(qm_coord, num_qm);
+    receive_qm_coordinates(qm_coord, num_qm);
     //receive_array(qmmmcfg.client.socket_to_driver, qm_coord, (3*num_qm)*sizeof(double));
     printf("Finished receiving QM coordinates\n");
     //send_label(qmmmcfg.client.socket_to_driver, "RESP");
@@ -589,7 +589,7 @@ void FixQMMM::exchange_forces()
       // receive MM forces from LAMMPS
       MPI_Recv( mm_force_on_qm_atoms, 3*num_qm,MPI_DOUBLE,1,QMMM_TAG_FORCE,mm_comm,MPI_STATUS_IGNORE);
       */
-      qmmmcfg.client.receive_forces(qm_force, mm_force_all, mm_force_on_qm_atoms);
+      receive_forces(qm_force, mm_force_all, mm_force_on_qm_atoms);
       //>>>
 
       //<<<
@@ -689,7 +689,7 @@ void FixQMMM::exchange_forces()
     // use qm_coord array as a communication buffer
     //<<<
     //MPI_Send(reduced_mm_force_on_qm_atoms, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_FORCE, mm_comm);
-    qmmmcfg.client.send_mm_force_on_qm_atoms(reduced_mm_force_on_qm_atoms, num_qm);
+    send_mm_force_on_qm_atoms(reduced_mm_force_on_qm_atoms, num_qm);
     //>>>
   }
   if ((comm->me) == 0 && (verbose > 0)) {
@@ -741,7 +741,7 @@ void FixQMMM::init()
       printf("Calling intialize_client\n");
       //QMMM_CLIENT::QMMMClient client;
       //qmmmcfg.client.initialize_client();
-      qmmmcfg.client.send_natoms( (int) atom->natoms, num_qm, num_mm, atom->ntypes);
+      send_natoms( (int) atom->natoms, num_qm, num_mm, atom->ntypes);
       /*
       // consistency check. the fix group and the QM and MM slave
       if ((num_qm != nat[0]) || (num_qm != nat[1]))

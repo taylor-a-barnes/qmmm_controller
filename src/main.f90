@@ -85,19 +85,19 @@ program driver
 !>>>
   call execute_command_line("hostname -i > hostname", WAIT=.TRUE.)
   ret = initialize_server__()
-  call execute_command_line("(cd ./mm_main; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/&
-       &mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
+  call execute_command_line("(cd ./mm_main; mpirun -n 1 ~/qmmm/lammps/&
+       &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
   ret = accept_mm_connection__()
-  call execute_command_line("(cd ./mm_subset; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/&
-       &mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
+  call execute_command_line("(cd ./mm_subset; mpirun -n 1 ~/qmmm/lammps/&
+       &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
   ret = accept_mm_subset_connection__()
   open(unit=27, file="./hostname")
   READ(27,'(A)')hostname
   close(27)
   !WRITE(6,*)'MY HOSTNAME IS: ',hostname
   !WRITE(6,*)'QE CALL LINE IS: ',"(cd ./qm; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/builds/qm/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)"
-  call execute_command_line("(cd ./qm; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/builds/&
-       &qm/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)", WAIT=.FALSE.)
+  call execute_command_line("(cd ./qm; mpirun -n 1 ~/qmmm/qe/&
+       &/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)", WAIT=.FALSE.)
   ret = accept_qm_connection__()
   ret = run_simulation__()
   !WRITE(6,*)'At end of simulation'
