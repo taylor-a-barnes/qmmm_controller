@@ -83,7 +83,8 @@ program driver
   !sleep, to ensure that the LAMMPS call completes
 !  CALL SLEEP(5)
 !>>>
-  call execute_command_line("hostname -i > hostname", WAIT=.TRUE.)
+  !call execute_command_line("hostname -i > hostname", WAIT=.TRUE.)
+  call execute_command_line("hostname > hostname", WAIT=.TRUE.)
   ret = initialize_server__()
   call execute_command_line("(cd ./mm_main; mpirun -n 1 ~/qmmm/lammps/&
        &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)

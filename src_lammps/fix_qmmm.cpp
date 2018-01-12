@@ -30,7 +30,9 @@
 
 #include "libqmmm.h"
 //<<<
-#include "../../lib/qmmm/messages.h"
+//#include "../../lib/qmmm/messages.h"
+#include "messages.h"
+#include "sockets.h"
 //>>>
 
 // message tags for QM/MM inter communicator communication
