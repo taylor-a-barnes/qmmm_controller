@@ -83,6 +83,20 @@ program driver
   !sleep, to ensure that the LAMMPS call completes
 !  CALL SLEEP(5)
 !>>>
+
+  !call execute_command_line("hostname > hostname", WAIT=.TRUE.)
+  !ret = initialize_server__()
+  !open(unit=27, file="./hostname")
+  !READ(27,'(A)')hostname
+  !close(27)
+  !WRITE(6,*)"(cd ./qm; mpirun -n 1 ~/qmmm/qe/&
+  !     &/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)"
+  !call execute_command_line("(cd ./qm; mpirun -n 1 ~/qmmm/qe/&
+  !     &/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)", WAIT=.FALSE.)
+  !ret = accept_qm_connection__()
+  !RETURN
+
+
   !call execute_command_line("hostname -i > hostname", WAIT=.TRUE.)
   call execute_command_line("hostname > hostname", WAIT=.TRUE.)
   ret = initialize_server__()
@@ -95,10 +109,10 @@ program driver
   open(unit=27, file="./hostname")
   READ(27,'(A)')hostname
   close(27)
-  !WRITE(6,*)'MY HOSTNAME IS: ',hostname
-  !WRITE(6,*)'QE CALL LINE IS: ',"(cd ./qm; srun -N 1 -n 1 /project/projectdirs/m1944/tabarnes/edison/builds/qm/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)"
   call execute_command_line("(cd ./qm; mpirun -n 1 ~/qmmm/qe/&
        &/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)", WAIT=.FALSE.)
+!  call execute_command_line("(cd ./qm; mpirun -n 1 ~/qmmm/qe/&
+!       &/bin/pw.x -ipi knl3.sirius.local.net:8021 -in water.in > water.out)", WAIT=.FALSE.)
   ret = accept_qm_connection__()
   ret = run_simulation__()
   !WRITE(6,*)'At end of simulation'

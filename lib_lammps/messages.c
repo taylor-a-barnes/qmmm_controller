@@ -93,7 +93,6 @@ int initialize_client()
   hlen = strlen(buff);
   printf("hostname length: %i\n",hlen);
 
-  // !!!!!!!!!!!!!!!!!!!! WARNING NEED TO ASSIGN HLEN CORRECTLY !!!!!!!!!!!!!!!!!!!!! //
   char serv_host[hlen];
   for (i=0; i < hlen; i++) {
     serv_host[i] = buff[i];
