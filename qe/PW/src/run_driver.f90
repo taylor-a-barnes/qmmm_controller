@@ -628,7 +628,9 @@ CONTAINS
        ! ... Reinitialize the G-Vectors if the cell is changed
        !
        CALL initialize_g_vectors()
-       lgreset = .false.
+       !<<<
+       !lgreset = .false.
+       !>>>
        !
     ELSE
        !
@@ -706,6 +708,10 @@ CONTAINS
     !
     omega_reset = omega
     dist_ang_reset = dist_ang
+    !<<<
+    !
+    lgreset = .false.
+    !>>>
     !
   END SUBROUTINE initialize_g_vectors
   !

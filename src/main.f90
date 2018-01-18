@@ -109,7 +109,7 @@ program driver
   open(unit=27, file="./hostname")
   READ(27,'(A)')hostname
   close(27)
-  call execute_command_line("(cd ./qm; mpirun -n 1 ~/qmmm/qe/&
+  call execute_command_line("(cd ./qm; mpirun -n 32 ~/qmmm/qe/&
        &/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)", WAIT=.FALSE.)
 !  call execute_command_line("(cd ./qm; mpirun -n 1 ~/qmmm/qe/&
 !       &/bin/pw.x -ipi knl3.sirius.local.net:8021 -in water.in > water.out)", WAIT=.FALSE.)
