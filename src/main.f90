@@ -103,8 +103,10 @@ program driver
   call execute_command_line("(cd ./mm_main; mpirun -n 1 ~/qmmm/lammps/&
        &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
   ret = accept_mm_connection__()
+!  call execute_command_line("(cd ./mm_subset; mpirun -n 1 ~/qmmm/lammps/&
+!       &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
   call execute_command_line("(cd ./mm_subset; mpirun -n 1 ~/qmmm/lammps/&
-       &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
+       &src/lmp_cori2 -in water_single.in > input.out)", WAIT=.FALSE.)
   ret = accept_mm_subset_connection__()
   open(unit=27, file="./hostname")
   READ(27,'(A)')hostname

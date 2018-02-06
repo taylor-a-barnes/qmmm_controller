@@ -442,6 +442,8 @@ int run_simulation()
 
   //instruct QE to exit
   send_label(qm_socket, "EXIT        ");
+
+  printf("Completed QM/MM simulation \n");
 }
 
 
