@@ -223,10 +223,13 @@ int accept_mm_subset_connection()
   if (mm_subset_socket < 0) {
     error("Could not accept connection");
   }
-  printf("Received connection from LAMMPS slave\n");
+  printf("Received connection from LAMMPS subset\n");
 
   //send information about the role of this process
-  send_label(mm_subset_socket, "SLAVE");
+  send_label(mm_subset_socket, "STATUS");
+
+  read_label(mm_subset_socket, buffer);
+  printf("Read label from LAMMPS subset: %s\n",buffer);
 
   return 0;
 }
@@ -276,6 +279,7 @@ int run_simulation()
   
   printf("Running the simulation\n");
 
+  return 0;
   /*
   //accept a connection
   mm_socket = accept(driver_socket, NULL, NULL);
