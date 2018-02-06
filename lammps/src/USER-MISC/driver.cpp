@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "driver.h"
+#include "atom.h"
 #include "domain.h"
 #include "update.h"
 #include "force.h"
@@ -37,7 +38,23 @@ Driver::Driver(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Driver::command(int narg, char **arg)
 {
-  //if (narg != 2) error->all(FLERR,"Illegal driver command");
+  /* format for driver command:
+   * driver hostname port [unix]
+   */
+  if (narg < 2) error->all(FLERR,"Illegal driver command");
+
+  if (atom->tag_enable == 0)
+    error->all(FLERR,"Cannot use driver command without atom IDs");
+
+  if (atom->tag_consecutive() == 0)
+    error->all(FLERR,"Driver command requires consecutive atom IDs");
+
+  // obtain host information from the command arguments
+  host = strdup(arg[0]);
+  port = force->inumeric(FLERR,arg[1]);
+  inet   = ((narg > 2) && (strcmp(arg[2],"unix") == 0) ) ? 0 : 1;
+
+  return;
 
   if (domain->box_exist == 0)
     error->all(FLERR,"Run command before simulation box is defined");

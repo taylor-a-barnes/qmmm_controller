@@ -28,6 +28,9 @@ class Driver : protected Pointers {
  public:
   Driver(class LAMMPS *);
   void command(int, char **);
+
+ protected:
+  char *host; int port; int inet;
 };
 
 }
