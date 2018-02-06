@@ -13,20 +13,20 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(server,Server)
+CommandStyle(driver,Driver)
 
 #else
 
-#ifndef LMP_SERVER_H
-#define LMP_SERVER_H
+#ifndef LMP_DRIVER_H
+#define LMP_DRIVER_H
 
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class Server : protected Pointers {
+class Driver : protected Pointers {
  public:
-  Server(class LAMMPS *);
+  Driver(class LAMMPS *);
   void command(int, char **);
 };
 

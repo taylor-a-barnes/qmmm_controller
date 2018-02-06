@@ -13,7 +13,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "server.h"
+#include "driver.h"
 #include "domain.h"
 #include "update.h"
 #include "force.h"
@@ -31,13 +31,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Server::Server(LAMMPS *lmp) : Pointers(lmp) {}
+Driver::Driver(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void Server::command(int narg, char **arg)
+void Driver::command(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal run command");
+  //if (narg != 2) error->all(FLERR,"Illegal driver command");
 
   if (domain->box_exist == 0)
     error->all(FLERR,"Run command before simulation box is defined");
