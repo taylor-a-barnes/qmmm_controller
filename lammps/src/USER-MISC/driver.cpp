@@ -59,6 +59,23 @@ neighbor->delay = 0;
 neighbor->every = 1;
 /*>>>>>>
 
+
+
+/** hash table top level data structure */
+typedef struct taginthash_t {
+  struct taginthash_node_t **bucket;     /* array of hash nodes */
+  tagint size;                           /* size of the array */
+  tagint entries;                        /* number of entries in table */
+  tagint downshift;                      /* shift cound, used in hash function */
+  tagint mask;                           /* used to select bits for hashing */
+} taginthash_t;
+
+#define HASH_FAIL  -1
+#define HASH_LIMIT  0.5
+
+
+
+
 /* Utility functions to simplify the interface with POSIX sockets */
 
 static void open_socket(int &sockfd, int inet, int port, char* host,
@@ -323,6 +340,9 @@ void Driver::command(int narg, char **arg)
       // receive the coordinate information
       read_coordinates(error);
     }
+    else if (strcmp(header,"<FORCES     ") == 0 ) {
+      write_forces(error);
+    }
     else {
       error->all(FLERR,"Unknown command from driver");
     }
@@ -377,6 +397,45 @@ void Driver::read_coordinates(Error* error)
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
+}
+
+
+void Driver::write_forces(Error* error)
+/* Writes to a socket.
+
+   Args:
+   sockfd: The id of the socket that will be written to.
+   data: The data to be written to the socket.
+   len: The length of the data in bytes.
+*/
+{
+  double forconv;
+  forconv=1.0;
+
+  double *forces;
+  double *forces_reduced;
+
+  forces = new double[3*nat];
+  forces_reduced = new double[3*nat];
+
+  // pick local atoms from the buffer
+  double **f = atom->f;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  //if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+  for (int i = 0; i < nlocal; i++) {
+    //if (mask[i] & groupbit) {
+      forces[3*(atom->tag[i]-1)+0] = f[i][0]/forconv;
+      forces[3*(atom->tag[i]-1)+1] = f[i][1]/forconv;
+      forces[3*(atom->tag[i]-1)+2] = f[i][2]/forconv;
+    //}
+  }
+
+  MPI_Reduce(forces, forces_reduced, 3*nat, MPI_DOUBLE, MPI_SUM, 0, world);
+
+  if (master) { 
+    writebuffer(driver_socket, (char*) forces_reduced, 8*(3*nat), error);
+  }
 }
 
 
