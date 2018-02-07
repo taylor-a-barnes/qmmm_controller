@@ -32,6 +32,8 @@ class Driver : protected Pointers {
  protected:
   char *host; int port; int inet, master;
   int driver_socket;
+  
+  int nat;
 };
 
 }

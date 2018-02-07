@@ -225,7 +225,7 @@ int accept_mm_subset_connection()
   }
   printf("Received connection from LAMMPS subset\n");
 
-  //send information about the role of this process
+  //request a status update
   send_label(mm_subset_socket, "STATUS");
 
   read_label(mm_subset_socket, buffer);
@@ -279,7 +279,7 @@ int run_simulation()
   
   printf("Running the simulation\n");
 
-  return 0;
+  //return 0;
   /*
   //accept a connection
   mm_socket = accept(driver_socket, NULL, NULL);
@@ -425,6 +425,10 @@ int run_simulation()
       receive_array(qm_socket, mm_force_all, (3*num_mm)*sizeof(double));
     }
 
+
+    //send the number of atoms to the MM subset process
+    send_label(mm_subset_socket, ">NAT");
+    send_array(mm_subset_socket, &num_qm, 1*sizeof(int));
 
     //send the coordinates to the MM subset process
     send_array(mm_subset_socket, qm_coord, (3*num_qm)*sizeof(double));

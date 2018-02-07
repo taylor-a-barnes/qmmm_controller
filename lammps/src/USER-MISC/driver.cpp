@@ -40,6 +40,7 @@ using namespace LAMMPS_NS;
 #include <netdb.h>
 #endif
 
+#define MSGLEN 12
 #define MAXLINE 2048
 
 /*<<<<<<
@@ -282,7 +283,56 @@ void Driver::command(int narg, char **arg)
     open_socket(driver_socket, inet, port, host, error);
   } else driver_socket=0;
 
+  /* ----------------------------------------------------------------- */
+  // Answer commands from the driver
+  /* ----------------------------------------------------------------- */
+  char header[MSGLEN+1];
+
+  while (true) {
+
+    if (master) { 
+      // read the next command from the driver
+      readbuffer(driver_socket, header, MSGLEN, error);
+      header[MSGLEN]=0;
+    }
+    // broadcast the command to the other tasks
+    MPI_Bcast(header,12,MPI_CHAR,0,world);
+    
+    if (screen)
+      fprintf(screen,"Read label from driver: %s\n",header);
+    if (logfile)
+      fprintf(logfile,"Read label from driver: %s\n",header);
+
+    if (strcmp(header,"STATUS      ") == 0 ) {
+      if (master) {
+	writebuffer(driver_socket,"READY       ",MSGLEN, error);
+      }
+    }
+    else if (strcmp(header,">NAT        ") == 0 ) {
+      if (master) {
+	readbuffer(driver_socket, (char*) &nat, 4, error);
+      }
+      MPI_Bcast(&nat,1,MPI_INTEGER,0,world);
+    }
+    else if (strcmp(header,">COORD      ") == 0 ) {
+      // receive the coordinate information
+      error->all(FLERR,">COORD not implemented yet");
+    }
+    else {
+      error->all(FLERR,"Unknown command from driver");
+    }
+
+  }
+
   return;
+
+
+
+
+
+
+
+
 
   if (domain->box_exist == 0)
     error->all(FLERR,"Run command before simulation box is defined");
