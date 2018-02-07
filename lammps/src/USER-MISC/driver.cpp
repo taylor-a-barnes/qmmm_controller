@@ -26,6 +26,7 @@
 #include "timer.h"
 #include "error.h"
 #include "comm.h"
+#include "irregular.h"
 
 using namespace LAMMPS_NS;
 
@@ -252,6 +253,7 @@ static void readbuffer(int sockfd, char *data, int len, Error* error)
     error->one(FLERR,"Error reading from socket: broken connection");
 }
 
+
 /* ---------------------------------------------------------------------- */
 
 Driver::Driver(LAMMPS *lmp) : Pointers(lmp) {}
@@ -282,6 +284,9 @@ void Driver::command(int narg, char **arg)
   if (master) {
     open_socket(driver_socket, inet, port, host, error);
   } else driver_socket=0;
+
+  // create instance of Irregular class
+  irregular = new Irregular(lmp);
 
   /* ----------------------------------------------------------------- */
   // Answer commands from the driver
@@ -316,7 +321,7 @@ void Driver::command(int narg, char **arg)
     }
     else if (strcmp(header,">COORD      ") == 0 ) {
       // receive the coordinate information
-      error->all(FLERR,">COORD not implemented yet");
+      read_coordinates(error);
     }
     else {
       error->all(FLERR,"Unknown command from driver");
@@ -325,3 +330,53 @@ void Driver::command(int narg, char **arg)
   }
 
 }
+
+
+void Driver::read_coordinates(Error* error)
+/* Writes to a socket.
+
+   Args:
+   sockfd: The id of the socket that will be written to.
+   data: The data to be written to the socket.
+   len: The length of the data in bytes.
+*/
+{
+  double posconv;
+  posconv=0.52917721*force->angstrom;
+
+  // create a buffer to hold the coordinates
+  double *buffer;
+  buffer = new double[3*nat];
+
+  readbuffer(driver_socket, (char*) buffer, 8*(3*nat), error);
+  MPI_Bcast(buffer,3*nat,MPI_DOUBLE,0,world);
+
+  // pick local atoms from the buffer
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  //if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+  for (int i = 0; i < nlocal; i++) {
+    //if (mask[i] & groupbit) {
+      x[i][0]=buffer[3*(atom->tag[i]-1)+0]*posconv;
+      x[i][1]=buffer[3*(atom->tag[i]-1)+1]*posconv;
+      x[i][2]=buffer[3*(atom->tag[i]-1)+2]*posconv;
+      //}
+  }
+
+  // ensure atoms are in current box & update box via shrink-wrap
+  // has to be be done before invoking Irregular::migrate_atoms() 
+  //   since it requires atoms be inside simulation box
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  domain->reset_box();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+  // move atoms to new processors via irregular()
+  // only needed if migrate_check() says an atom moves to far
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  if (irregular->migrate_check()) irregular->migrate_atoms();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+}
+
+

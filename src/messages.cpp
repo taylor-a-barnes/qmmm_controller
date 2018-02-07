@@ -431,7 +431,15 @@ int run_simulation()
     send_array(mm_subset_socket, &num_qm, 1*sizeof(int));
 
     //send the coordinates to the MM subset process
+    send_label(mm_subset_socket, ">COORD");
     send_array(mm_subset_socket, qm_coord, (3*num_qm)*sizeof(double));
+
+    //have the MM subset process send the forces
+    send_label(mm_subset_socket, "<FORCES");
+    receive_array(mm_subset_socket, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
+
+    //send the coordinates to the MM subset process
+    //send_array(mm_subset_socket, qm_coord, (3*num_qm)*sizeof(double));
 
     //wait for message response
     //read_label(mm_subset_socket, buffer);
@@ -441,7 +449,7 @@ int run_simulation()
     //for (i=0; i<3*num_qm; i++) { qm_force[i] = 0.0; }
     //for (i=0; i<3*natoms; i++) { mm_force_all[i] = 0.0; }
     //for (i=0; i<3*num_qm; i++) { mm_force_on_qm_atoms[i] = 0.0; }
-    receive_array(mm_subset_socket, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
+    //receive_array(mm_subset_socket, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
 
     //send the forces information
     send_forces(mm_socket);

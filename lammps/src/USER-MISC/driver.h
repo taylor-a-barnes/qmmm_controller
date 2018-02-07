@@ -30,10 +30,14 @@ class Driver : protected Pointers {
   void command(int, char **);
 
  protected:
+  void read_coordinates(Error *);
   char *host; int port; int inet, master;
   int driver_socket;
   
   int nat;
+
+private:
+  class Irregular *irregular;
 };
 
 }
