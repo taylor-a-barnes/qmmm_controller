@@ -30,7 +30,8 @@ class Driver : protected Pointers {
   void command(int, char **);
 
  protected:
-  char *host; int port; int inet;
+  char *host; int port; int inet, master;
+  int driver_socket;
 };
 
 }
