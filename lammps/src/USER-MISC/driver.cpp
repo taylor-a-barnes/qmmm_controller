@@ -28,6 +28,9 @@
 #include "comm.h"
 #include "irregular.h"
 
+#include "verlet.h"
+#include "neighbor.h"
+
 using namespace LAMMPS_NS;
 
 // socket interface
@@ -409,14 +412,28 @@ void Driver::write_forces(Error* error)
    len: The length of the data in bytes.
 */
 {
-  double forconv;
-  forconv=1.0;
+  double potconv, posconv, forceconv;
+  potconv=3.1668152e-06/force->boltz;
+  posconv=0.52917721*force->angstrom;
+  forceconv=potconv*posconv;
 
   double *forces;
   double *forces_reduced;
 
   forces = new double[3*nat];
   forces_reduced = new double[3*nat];
+
+  // calculate the forces
+  update->whichflag = 1;
+  //timer->init_timeout();
+  update->nsteps = 1;
+  //update->firststep = update->ntimestep;
+  //update->laststep = update->ntimestep + update->nsteps;
+  //update->beginstep = update->firststep;
+  //update->endstep = update->laststep;
+  lmp->init();
+  update->integrate->setup();
+  
 
   // pick local atoms from the buffer
   double **f = atom->f;
@@ -425,9 +442,16 @@ void Driver::write_forces(Error* error)
   //if (igroup == atom->firstgroup) nlocal = atom->nfirst;
   for (int i = 0; i < nlocal; i++) {
     //if (mask[i] & groupbit) {
-      forces[3*(atom->tag[i]-1)+0] = f[i][0]/forconv;
-      forces[3*(atom->tag[i]-1)+1] = f[i][1]/forconv;
-      forces[3*(atom->tag[i]-1)+2] = f[i][2]/forconv;
+
+    if (screen)
+      fprintf(screen,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
+    if (logfile)
+      fprintf(logfile,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
+
+      forces[3*(atom->tag[i]-1)+0] = f[i][0]*forceconv;
+      forces[3*(atom->tag[i]-1)+1] = f[i][1]*forceconv;
+      forces[3*(atom->tag[i]-1)+2] = f[i][2]*forceconv;
+
     //}
   }
 
