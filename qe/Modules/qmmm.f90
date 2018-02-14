@@ -80,6 +80,7 @@ MODULE qmmm
   PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm, read_mm_charge
   PUBLIC :: read_mm_mask, read_mm_coord, read_types, read_mass, write_ec_force
   PUBLIC :: write_mm_force, qmmm_center_molecule, qmmm_minimum_image
+  PUBLIC :: read_aradii
 
 CONTAINS
 
@@ -592,6 +593,10 @@ END SUBROUTINE qmmm_minimum_image
     !
     ! if either the MS2 or EC aren't enabled, exit immediately
     IF( qmmm_mode /= 2 ) RETURN
+    !<<<
+    !
+    WRITE(6,*)'Running qmmm_add_esf'
+    !>>>
     !
     ! Index for parallel summation
     !
@@ -930,7 +935,7 @@ END SUBROUTINE qmmm_minimum_image
     USE constants, ONLY : bohr_radius_angs
     INTEGER, INTENT(IN) :: socketfd
     !
-    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading MM types"
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading MM mass"
     !
     ! ... Read the dimensions of the MM cell
     !
@@ -943,8 +948,8 @@ END SUBROUTINE qmmm_minimum_image
     ! do pre-forces work
     IF (ionode) THEN
 
-        CALL qmmm_center_molecule
-        CALL qmmm_minimum_image
+        !CALL qmmm_center_molecule
+        !CALL qmmm_minimum_image
 
         ! set atomic radii
         CALL ec_fill_radii( aradii, nat_mm, mass, types, ntypes, 1 )
@@ -955,6 +960,28 @@ END SUBROUTINE qmmm_minimum_image
     rc_mm = rc_mm / (alat * bohr_radius_angs)
     !
   END SUBROUTINE read_mass
+  !
+  !
+  SUBROUTINE read_aradii(socketfd)
+    USE cell_base, ONLY : alat
+    USE constants, ONLY : bohr_radius_angs
+    INTEGER, INTENT(IN) :: socketfd
+    !
+    IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: Reading MM aradii"
+    !
+    ! ... Read the dimensions of the MM cell
+    !
+    IF ( ionode ) CALL readbuffer(socketfd, aradii, nat_mm)
+    !
+#if defined(__MPI)
+    CALL mp_bcast(aradii, ionode_id, world_comm)
+#endif
+    !
+    rc_mm = aradii
+    ! Convert radii to Bohr units
+    rc_mm = rc_mm / (alat * bohr_radius_angs)
+    !
+  END SUBROUTINE read_aradii
 
   !---------------------------------------------------------------------!
   ! communicate forces of the QM system to MM-master

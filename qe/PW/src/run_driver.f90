@@ -52,7 +52,7 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
                                read_mm_charge, read_mm_mask, read_mm_coord, &
                                read_types, read_mass, write_ec_force, &
                                write_mm_force, qmmm_center_molecule, &
-                               qmmm_minimum_image
+                               qmmm_minimum_image, read_aradii
   USE scf,              ONLY : rho
   USE lsda_mod,         ONLY : nspin
   USE fft_base,         ONLY : dfftp
@@ -219,6 +219,9 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         !
      CASE( ">MM_MASS" )
         CALL read_mass(socket)
+        !
+     CASE( ">ARADII" )
+        CALL read_aradii(socket)
         !
      CASE( "RECENTER" )
         CALL qmmm_center_molecule()

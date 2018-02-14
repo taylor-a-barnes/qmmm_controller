@@ -380,7 +380,7 @@ int run_simulation()
     send_label(qm_socket, ">MM_CHARGE");
     send_array(qm_socket, mm_charge_all, num_mm*sizeof(double));
 
-    //send the MM coordinates to QE
+    //send the MM masses to QE
     send_label(qm_socket, ">MM_MASS");
     send_array(qm_socket, mass, (ntypes+1)*sizeof(double));
 
@@ -398,6 +398,7 @@ int run_simulation()
     send_array(qm_socket, qm_coord, (3*num_qm)*sizeof(double));
 
     //have the QM process recenter the coodinates (THE DRIVER SHOULD PROBABLY DO THIS INSTEAD)
+    //CURRENTLY, >MM_MASS DOES THIS
     send_label(qm_socket, "RECENTER");
 
     //have the QM process run an SCF calculation
