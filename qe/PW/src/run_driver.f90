@@ -127,7 +127,10 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
   WRITE(6,*)'Doing initialization work'
   !>>>
   CALL initialize_g_vectors
-  CALL electrons()
+  !<<<
+  ! the iPI interfaceran an SCF calculation here, but that is no longer necessary
+  !CALL electrons()
+  !>>>
   CALL update_file()
   !<<<
   WRITE(6,*)'Calling create socket'
