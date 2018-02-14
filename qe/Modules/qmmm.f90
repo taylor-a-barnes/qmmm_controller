@@ -955,6 +955,7 @@ END SUBROUTINE qmmm_minimum_image
         CALL ec_fill_radii( aradii, nat_mm, mass, types, ntypes, 1 )
 
     END IF
+    CALL mp_bcast(aradii, ionode_id, world_comm)    
     rc_mm = aradii
     ! Convert radii to Bohr units
     rc_mm = rc_mm / (alat * bohr_radius_angs)
