@@ -607,7 +607,10 @@ void FixQMMM::exchange_forces()
       // so we need to apply the scaling factor to get to the
       // supported internal units ("metal" or "real")
       for (int i=0; i < num_qm; ++i) {
-        if  (verbose > 1) {
+        //<<<
+        //if  (verbose > 1) {
+        if  (true) {
+        //>>>
            const char fmt[] = "[" TAGINT_FORMAT "]: QM(%g %g %g) MM(%g %g %g) /\\(%g %g %g)\n";
            if (screen) fprintf(screen, fmt, qm_remap[i],
                 qmmm_fscale*qm_force[3*i+0], qmmm_fscale*qm_force[3*i+1], qmmm_fscale*qm_force[3*i+2],

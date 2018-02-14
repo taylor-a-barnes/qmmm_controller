@@ -51,7 +51,8 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
                                set_qm_natoms, set_ntypes, set_cell_mm, &
                                read_mm_charge, read_mm_mask, read_mm_coord, &
                                read_types, read_mass, write_ec_force, &
-                               write_mm_force
+                               write_mm_force, qmmm_center_molecule, &
+                               qmmm_minimum_image
   USE scf,              ONLY : rho
   USE lsda_mod,         ONLY : nspin
   USE fft_base,         ONLY : dfftp
@@ -218,6 +219,11 @@ SUBROUTINE run_driver ( srvaddress, exit_status )
         !
      CASE( ">MM_MASS" )
         CALL read_mass(socket)
+        !
+     CASE( "RECENTER" )
+        CALL qmmm_center_molecule()
+        CALL qmmm_minimum_image()
+        IF ( ionode ) WRITE(*,*) " @ DRIVER MODE: recentered coords ",tau
         !
      CASE( "SCF" )
         CALL run_scf()
@@ -607,6 +613,11 @@ CONTAINS
     !
     IF ( ionode ) CALL readbuffer(socket, combuf, nat*3)
     CALL mp_bcast( combuf, ionode_id, intra_image_comm)
+    !
+    WRITE(6,*)" @ DRIVER MODE: input coordinates"
+    DO i=1, nat
+       WRITE(6,*)i,combuf(i*3+0),combuf(i*3+1),combuf(i*3+2)
+    END DO
     !
     ! ... Convert the incoming configuration to the internal pwscf format
     !

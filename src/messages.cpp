@@ -397,6 +397,9 @@ int run_simulation()
     printf("H: %f %f %f\n",qm_coord[6],qm_coord[7],qm_coord[8]);
     send_array(qm_socket, qm_coord, (3*num_qm)*sizeof(double));
 
+    //have the QM process recenter the coodinates (THE DRIVER SHOULD PROBABLY DO THIS INSTEAD)
+    send_label(qm_socket, "RECENTER");
+
     //have the QM process run an SCF calculation
     send_label(qm_socket, "SCF");
 

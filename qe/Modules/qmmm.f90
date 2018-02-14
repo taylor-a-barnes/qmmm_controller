@@ -79,7 +79,7 @@ MODULE qmmm
   PUBLIC :: qmmm_update_positions, qmmm_update_forces, qmmm_add_esf, qmmm_force_esf
   PUBLIC :: set_mm_natoms, set_qm_natoms, set_ntypes, set_cell_mm, read_mm_charge
   PUBLIC :: read_mm_mask, read_mm_coord, read_types, read_mass, write_ec_force
-  PUBLIC :: write_mm_force
+  PUBLIC :: write_mm_force, qmmm_center_molecule, qmmm_minimum_image
 
 CONTAINS
 
