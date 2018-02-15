@@ -40,7 +40,7 @@ int receive_initialization();
 int receive_cell();
 //int receive_coordinates();
 int send_forces();
-int receive_forces(double*,double*,double*);
+int receive_forces(double*,double*,double*,double);
 int send_initialization(int);
 int send_natoms(int,int,int,int);
 int send_cell();

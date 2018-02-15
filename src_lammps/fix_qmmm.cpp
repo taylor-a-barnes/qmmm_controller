@@ -591,15 +591,21 @@ void FixQMMM::exchange_forces()
       // receive MM forces from LAMMPS
       MPI_Recv( mm_force_on_qm_atoms, 3*num_qm,MPI_DOUBLE,1,QMMM_TAG_FORCE,mm_comm,MPI_STATUS_IGNORE);
       */
-      receive_forces(qm_force, mm_force_all, mm_force_on_qm_atoms);
+
+      double potconv, posconv, forceconv;
+      potconv=3.1668152e-06/force->boltz;
+      posconv=0.52917721*force->angstrom;
+      forceconv=potconv*posconv;
+
+      receive_forces(qm_force, mm_force_all, mm_force_on_qm_atoms, forceconv);
       //>>>
 
       //<<<
       if (screen)  fputs("QMMM: @@@\n",screen);
       if (logfile) fputs("QMMM: @@@@\n",logfile);
-      memset( qm_force, 0.0, sizeof(qm_force) );
-      memset( mm_force_all, 0.0, sizeof(mm_force_all) );
-      memset( mm_force_on_qm_atoms, 0.0, sizeof(mm_force_on_qm_atoms) );
+      //memset( qm_force, 0.0, sizeof(qm_force) );
+      //memset( mm_force_all, 0.0, sizeof(mm_force_all) );
+      //memset( mm_force_on_qm_atoms, 0.0, sizeof(mm_force_on_qm_atoms) );
       //>>>
 
       // subtract MM forces from QM forces to get the delta

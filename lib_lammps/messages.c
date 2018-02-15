@@ -355,11 +355,23 @@ int send_forces()
 
 
 /* Receive forces from the socket */
-int receive_forces(double* qm_force__, double* mm_force_all__, double* mm_force_on_qm_atoms__)
+int receive_forces(double* qm_force__, double* mm_force_all__, double* mm_force_on_qm_atoms__, double forceconv)
 {
+  int i;
+
   receive_array(qmmm_interface.socket_to_driver, qm_force__, (3*qmmm_interface.num_qm)*sizeof(double));
   receive_array(qmmm_interface.socket_to_driver, mm_force_all__, (3*qmmm_interface.natoms)*sizeof(double));
   receive_array(qmmm_interface.socket_to_driver, mm_force_on_qm_atoms__, (3*qmmm_interface.num_qm)*sizeof(double));
+
+  for (i=0; i < 3*qmmm_interface.num_qm; i++) {
+    qm_force__[i] = qm_force__[i]/forceconv;
+  }
+  for (i=0; i < 3*qmmm_interface.natoms; i++) {
+    mm_force_all__[i] = mm_force_all__[i]/forceconv;
+  }
+  for (i=0; i < 3*qmmm_interface.num_qm; i++) {
+    mm_force_on_qm_atoms__[i] = mm_force_on_qm_atoms__[i]/forceconv;
+  }
 }
 
 

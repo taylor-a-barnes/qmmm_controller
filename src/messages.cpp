@@ -386,15 +386,17 @@ int run_simulation()
 
     //get the aradii
     ec_fill_radii(aradii,&num_mm,mass,type,&ntypes);
+    /*
     for (i=0; i<num_mm; i++) {
       printf("aradii: %i %f\n",i+1,aradii[i]);
     }
+    */
 
     //send the coordinates to the QM process
     send_label(qm_socket, ">COORD");
-    printf("O: %f %f %f\n",qm_coord[0],qm_coord[1],qm_coord[2]);
-    printf("H: %f %f %f\n",qm_coord[3],qm_coord[4],qm_coord[5]);
-    printf("H: %f %f %f\n",qm_coord[6],qm_coord[7],qm_coord[8]);
+    printf("   O: %f %f %f\n",qm_coord[0],qm_coord[1],qm_coord[2]);
+    printf("   H: %f %f %f\n",qm_coord[3],qm_coord[4],qm_coord[5]);
+    printf("   H: %f %f %f\n",qm_coord[6],qm_coord[7],qm_coord[8]);
     send_array(qm_socket, qm_coord, (3*num_qm)*sizeof(double));
 
     //have the QM process recenter the coodinates (THE DRIVER SHOULD PROBABLY DO THIS INSTEAD)
@@ -412,6 +414,10 @@ int run_simulation()
     //get the QM forces
     send_label(qm_socket, "<FORCE");
     receive_array(qm_socket, qm_force, (3*num_qm)*sizeof(double));
+    printf("QM Forces:\n");
+    for (i=0; i<num_qm; i++) {
+      printf("   %i %f %f %f\n",i+1,qm_force[3*i+0],qm_force[3*i+1],qm_force[3*i+2]);
+    }
 
     if ( qm_mode == 2 ) {
       
@@ -687,6 +693,10 @@ int receive_forces()
 /* Send the forces through the socket */
 int send_forces(int sock)
 {
+  printf("Sending Forces:\n");
+  for (int i=0; i<num_qm; i++) {
+    printf("   %i %f %f %f\n",i+1,qm_force[3*i+0],qm_force[3*i+1],qm_force[3*i+2]);
+  }
   send_array(sock, qm_force, (3*num_qm)*sizeof(double));
   send_array(sock, mm_force_all, (3*natoms)*sizeof(double));
   send_array(sock, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
