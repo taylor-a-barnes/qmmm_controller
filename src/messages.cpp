@@ -312,6 +312,10 @@ int run_simulation()
     error("Initial message from LAMMPS is invalid");
   }
 
+  //receive the number of MM atoms from the MM subset process
+  send_label(mm_subset_socket, "<NAT");
+  receive_array(mm_subset_socket, &num_qm, 1*sizeof(int));
+
   //send the QMMM mode to QE
   send_label(qm_socket, ">QMMM_MODE");
   send_array(qm_socket, &qm_mode, 1*sizeof(int));
@@ -437,8 +441,8 @@ int run_simulation()
 
 
     //send the number of atoms to the MM subset process
-    send_label(mm_subset_socket, ">NAT");
-    send_array(mm_subset_socket, &num_qm, 1*sizeof(int));
+    //send_label(mm_subset_socket, ">NAT");
+    //send_array(mm_subset_socket, &num_qm, 1*sizeof(int));
 
     //send the coordinates to the MM subset process
     send_label(mm_subset_socket, ">COORD");

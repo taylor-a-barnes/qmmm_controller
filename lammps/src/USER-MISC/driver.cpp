@@ -335,9 +335,14 @@ void Driver::command(int narg, char **arg)
     }
     else if (strcmp(header,">NAT        ") == 0 ) {
       if (master) {
-	readbuffer(driver_socket, (char*) &nat, 4, error);
+	readbuffer(driver_socket, (char*) &atom->natoms, 4, error);
       }
-      MPI_Bcast(&nat,1,MPI_INTEGER,0,world);
+      MPI_Bcast(&atom->natoms,1,MPI_INTEGER,0,world);
+    }
+    else if (strcmp(header,"<NAT        ") == 0 ) {
+      if (master) {
+	writebuffer(driver_socket, (char*) &atom->natoms, 4, error);
+      }
     }
     else if (strcmp(header,">COORD      ") == 0 ) {
       // receive the coordinate information
@@ -369,10 +374,10 @@ void Driver::read_coordinates(Error* error)
 
   // create a buffer to hold the coordinates
   double *buffer;
-  buffer = new double[3*nat];
+  buffer = new double[3*atom->natoms];
 
-  readbuffer(driver_socket, (char*) buffer, 8*(3*nat), error);
-  MPI_Bcast(buffer,3*nat,MPI_DOUBLE,0,world);
+  readbuffer(driver_socket, (char*) buffer, 8*(3*atom->natoms), error);
+  MPI_Bcast(buffer,3*atom->natoms,MPI_DOUBLE,0,world);
 
   // pick local atoms from the buffer
   double **x = atom->x;
@@ -420,8 +425,8 @@ void Driver::write_forces(Error* error)
   double *forces;
   double *forces_reduced;
 
-  forces = new double[3*nat];
-  forces_reduced = new double[3*nat];
+  forces = new double[3*atom->natoms];
+  forces_reduced = new double[3*atom->natoms];
 
   // calculate the forces
   update->whichflag = 1;
@@ -455,10 +460,10 @@ void Driver::write_forces(Error* error)
     //}
   }
 
-  MPI_Reduce(forces, forces_reduced, 3*nat, MPI_DOUBLE, MPI_SUM, 0, world);
+  MPI_Reduce(forces, forces_reduced, 3*atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
   if (master) { 
-    writebuffer(driver_socket, (char*) forces_reduced, 8*(3*nat), error);
+    writebuffer(driver_socket, (char*) forces_reduced, 8*(3*atom->natoms), error);
   }
 }
 
