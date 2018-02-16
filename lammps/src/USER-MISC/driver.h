@@ -30,6 +30,7 @@ class Driver : protected Pointers {
   void command(int, char **);
 
  protected:
+  void send_types(Error *);
   void read_coordinates(Error *);
   void send_coordinates(Error *);
   void send_charges(Error *);

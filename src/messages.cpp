@@ -403,6 +403,10 @@ int run_simulation()
     send_label(mm_socket, "<CHARGE");
     receive_array(mm_socket, mm_charge_all, (num_mm)*sizeof(double));
 
+    //receive the MM types
+    send_label(mm_socket, "<TYPES");
+    receive_array(mm_socket, mm_charge_all, (natoms)*sizeof(int));
+
     return 0;
 
     //read the label - should be the coordinate information

@@ -349,6 +349,10 @@ void Driver::command(int narg, char **arg)
 	writebuffer(driver_socket, (char*) &atom->ntypes, 4, error);
       }
     }
+    else if (strcmp(header,"<TYPES     ") == 0 ) {
+      // send the atom types
+      send_types(error);
+    }
     else if (strcmp(header,"<CELL       ") == 0 ) {
       send_cell(error);
     }
@@ -361,8 +365,8 @@ void Driver::command(int narg, char **arg)
       send_coordinates(error);
     }
     else if (strcmp(header,"<CHARGE     ") == 0 ) {
-      // send the coordinate information
-      send_coordinates(error);
+      // send the charges
+      send_charges(error);
     }
     else if (strcmp(header,"<FORCES     ") == 0 ) {
       write_forces(error);
@@ -497,6 +501,23 @@ void Driver::send_charges(Error* error)
 
   if (master) { 
     writebuffer(driver_socket, (char*) charges_reduced, 8*(atom->natoms), error);
+  }
+}
+
+
+void Driver::send_types(Error* error)
+/* Writes to a socket.
+
+   Args:
+   sockfd: The id of the socket that will be written to.
+   data: The data to be written to the socket.
+   len: The length of the data in bytes.
+*/
+{
+  int * const type = atom->type;
+
+  if (master) { 
+    writebuffer(driver_socket, (char*) type, 8*(atom->ntypes), error);
   }
 }
 
