@@ -349,6 +349,9 @@ void Driver::command(int narg, char **arg)
 	writebuffer(driver_socket, (char*) &atom->ntypes, 4, error);
       }
     }
+    else if (strcmp(header,"<CELL       ") == 0 ) {
+      send_cell(error);
+    }
     else if (strcmp(header,">COORD      ") == 0 ) {
       // receive the coordinate information
       read_coordinates(error);
@@ -473,3 +476,28 @@ void Driver::write_forces(Error* error)
 }
 
 
+void Driver::send_cell(Error* error)
+/* Writes to a socket.
+
+   Args:
+   sockfd: The id of the socket that will be written to.
+   data: The data to be written to the socket.
+   len: The length of the data in bytes.
+*/
+{
+  double celldata[9];
+
+  celldata[0] = domain->boxlo[0];
+  celldata[1] = domain->boxlo[1];
+  celldata[2] = domain->boxlo[2];
+  celldata[3] = domain->boxhi[0];
+  celldata[4] = domain->boxhi[1];
+  celldata[5] = domain->boxhi[2];
+  celldata[6] = domain->xy;
+  celldata[7] = domain->xz;
+  celldata[8] = domain->yz;
+
+  if (master) { 
+    writebuffer(driver_socket, (char*) celldata, 8*(9), error);
+  }
+}

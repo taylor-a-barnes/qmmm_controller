@@ -194,11 +194,17 @@ int accept_mm_connection()
   }
   printf("Received connection from LAMMPS master\n");
 
+  //request a status update
+  send_label(mm_socket, "STATUS");
+
+  read_label(mm_socket, buffer);
+  printf("Read label from LAMMPS main: %s\n",buffer);
+
+  /*
   //send information about the role of this process
   send_label(mm_socket, "MASTER");
 
   //receive QM information
-  
   printf("$$$\n");
   read_label(mm_socket, buffer);
   if( strcmp(buffer,"QM_INFO") == 0 ) {
@@ -208,6 +214,7 @@ int accept_mm_connection()
   else {
     error("Expected QM information");
   }
+  */
 
   return 0;
 }
@@ -303,6 +310,7 @@ int run_simulation()
   */
 
   //read initialization information
+  /*
   read_label(mm_socket, buffer);
   if( strcmp(buffer,"INIT") == 0 ) {
     printf("Reading initialization information from LAMMPS master\n");
@@ -311,6 +319,12 @@ int run_simulation()
   else {
     error("Initial message from LAMMPS is invalid");
   }
+  */
+
+  //receive the number of MM atoms from the MM main process
+  send_label(mm_subset_socket, "<NAT");
+  receive_array(mm_subset_socket, &num_mm, 1*sizeof(int));
+  natoms = num_mm;
 
   //receive the number of MM atom types from the MM subset process
   send_label(mm_subset_socket, "<NTYPES");
@@ -321,7 +335,7 @@ int run_simulation()
   receive_array(mm_subset_socket, &num_qm, 1*sizeof(int));
 
   //initialize the arrays for atoms, forces, etc.
-  //initialize_arrays();
+  initialize_arrays();
 
   //send the QMMM mode to QE
   send_label(qm_socket, ">QMMM_MODE");
@@ -334,7 +348,12 @@ int run_simulation()
 
     printf("\nIteration %i",iteration);
     printf("\n");
+
+    //receive the cell information from the MM main process
+    send_label(mm_socket, "<CELL");
+    receive_cell(mm_socket);
     
+    /*
     //read the label - should be the cell information
     read_label(mm_socket, buffer);
     printf("Read new label: %s\n",buffer);
@@ -344,6 +363,7 @@ int run_simulation()
     else {
       error("Unexpected label");
     }
+    */
 
     //send the cell information to QE
     //send_label(qm_socket, ">CELL");

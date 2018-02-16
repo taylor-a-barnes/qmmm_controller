@@ -100,8 +100,10 @@ program driver
   !call execute_command_line("hostname -i > hostname", WAIT=.TRUE.)
   call execute_command_line("hostname > hostname", WAIT=.TRUE.)
   ret = initialize_server__()
+!  call execute_command_line("(cd ./mm_main; mpirun -n 1 ~/qmmm/lammps/&
+!       &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
   call execute_command_line("(cd ./mm_main; mpirun -n 1 ~/qmmm/lammps/&
-       &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
+       &src/lmp_cori2 -in water.in > input.out)", WAIT=.FALSE.)
   ret = accept_mm_connection__()
 !  call execute_command_line("(cd ./mm_subset; mpirun -n 1 ~/qmmm/lammps/&
 !       &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
