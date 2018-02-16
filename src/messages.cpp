@@ -286,6 +286,16 @@ int run_simulation()
   
   printf("Running the simulation\n");
 
+  //NOTE: SHOULD READ THESE FROM QMMM.INP!!!
+  qm_mode = 2;
+  qm_verbose = 1;
+  qm_steps = 11;
+
+  printf("qm_mode:    %i\n",qm_mode);
+  printf("qm_verbose: %i\n",qm_verbose);
+  printf("qm_steps:   %i\n",qm_steps);
+
+
   //return 0;
   /*
   //accept a connection
