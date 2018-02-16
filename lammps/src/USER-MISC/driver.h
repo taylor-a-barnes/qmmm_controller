@@ -31,6 +31,7 @@ class Driver : protected Pointers {
 
  protected:
   void read_coordinates(Error *);
+  void send_coordinates(Error *);
   void write_forces(Error *);
   void send_cell(Error *);
   char *host; int port; int inet, master;

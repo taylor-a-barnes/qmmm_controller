@@ -385,6 +385,12 @@ int run_simulation()
     send_label(qm_socket, ">MM_CELL");
     send_cell(qm_socket);
 
+    //receive the MM coordinates
+    send_label(mm_socket, "<COORD");
+    receive_array(mm_socket, mm_coord_all, (3*num_mm)*sizeof(double));
+
+    return 0;
+
     //read the label - should be the coordinate information
     read_label(mm_socket, buffer);
     printf("Read new label: %s\n",buffer);

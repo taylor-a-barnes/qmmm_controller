@@ -356,6 +356,10 @@ void Driver::command(int narg, char **arg)
       // receive the coordinate information
       read_coordinates(error);
     }
+    else if (strcmp(header,"<COORD      ") == 0 ) {
+      // send the coordinate information
+      send_coordinates(error);
+    }
     else if (strcmp(header,"<FORCES     ") == 0 ) {
       write_forces(error);
     }
@@ -413,6 +417,47 @@ void Driver::read_coordinates(Error* error)
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
+}
+
+
+void Driver::send_coordinates(Error* error)
+/* Writes to a socket.
+
+   Args:
+   sockfd: The id of the socket that will be written to.
+   data: The data to be written to the socket.
+   len: The length of the data in bytes.
+*/
+{
+  double posconv;
+  posconv=0.52917721*force->angstrom;
+
+  double *coords;
+  double *coords_reduced;
+
+  coords = new double[3*atom->natoms];
+  coords_reduced = new double[3*atom->natoms];
+
+  // pick local atoms from the buffer
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  //if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+  for (int i = 0; i < nlocal; i++) {
+    //if (mask[i] & groupbit) {
+
+      coords[3*(atom->tag[i]-1)+0] = x[i][0]/posconv;
+      coords[3*(atom->tag[i]-1)+1] = x[i][1]/posconv;
+      coords[3*(atom->tag[i]-1)+2] = x[i][2]/posconv;
+
+    //}
+  }
+
+  MPI_Reduce(coords, coords_reduced, 3*atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
+
+  if (master) { 
+    writebuffer(driver_socket, (char*) coords_reduced, 8*(3*atom->natoms), error);
+  }
 }
 
 
