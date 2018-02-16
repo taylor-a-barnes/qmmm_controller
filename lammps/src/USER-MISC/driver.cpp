@@ -344,6 +344,11 @@ void Driver::command(int narg, char **arg)
 	writebuffer(driver_socket, (char*) &atom->natoms, 4, error);
       }
     }
+    else if (strcmp(header,"<NTYPES     ") == 0 ) {
+      if (master) {
+	writebuffer(driver_socket, (char*) &atom->ntypes, 4, error);
+      }
+    }
     else if (strcmp(header,">COORD      ") == 0 ) {
       // receive the coordinate information
       read_coordinates(error);

@@ -312,9 +312,16 @@ int run_simulation()
     error("Initial message from LAMMPS is invalid");
   }
 
+  //receive the number of MM atom types from the MM subset process
+  send_label(mm_subset_socket, "<NTYPES");
+  receive_array(mm_subset_socket, &ntypes, 1*sizeof(int));
+
   //receive the number of MM atoms from the MM subset process
   send_label(mm_subset_socket, "<NAT");
   receive_array(mm_subset_socket, &num_qm, 1*sizeof(int));
+
+  //initialize the arrays for atoms, forces, etc.
+  //initialize_arrays();
 
   //send the QMMM mode to QE
   send_label(qm_socket, ">QMMM_MODE");
