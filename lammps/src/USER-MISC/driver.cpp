@@ -360,6 +360,10 @@ void Driver::command(int narg, char **arg)
       // send the coordinate information
       send_coordinates(error);
     }
+    else if (strcmp(header,"<CHARGE     ") == 0 ) {
+      // send the coordinate information
+      send_coordinates(error);
+    }
     else if (strcmp(header,"<FORCES     ") == 0 ) {
       write_forces(error);
     }
@@ -457,6 +461,42 @@ void Driver::send_coordinates(Error* error)
 
   if (master) { 
     writebuffer(driver_socket, (char*) coords_reduced, 8*(3*atom->natoms), error);
+  }
+}
+
+
+void Driver::send_charges(Error* error)
+/* Writes to a socket.
+
+   Args:
+   sockfd: The id of the socket that will be written to.
+   data: The data to be written to the socket.
+   len: The length of the data in bytes.
+*/
+{
+  double *charges;
+  double *charges_reduced;
+
+  charges = new double[atom->natoms];
+  charges_reduced = new double[atom->natoms];
+
+  // pick local atoms from the buffer
+  double *charge = atom->q;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  //if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+  for (int i = 0; i < nlocal; i++) {
+    //if (mask[i] & groupbit) {
+
+      charges[atom->tag[i]-1] = charge[i];
+
+    //}
+  }
+
+  MPI_Reduce(charges, charges_reduced, atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
+
+  if (master) { 
+    writebuffer(driver_socket, (char*) charges_reduced, 8*(atom->natoms), error);
   }
 }
 
