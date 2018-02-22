@@ -588,10 +588,10 @@ void Driver::write_forces(Error* error)
   for (int i = 0; i < nlocal; i++) {
     //if (mask[i] & groupbit) {
 
-    if (screen)
-      fprintf(screen,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
-    if (logfile)
-      fprintf(logfile,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
+    //if (screen)
+    //  fprintf(screen,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
+    //if (logfile)
+    //  fprintf(logfile,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
 
       forces[3*(atom->tag[i]-1)+0] = f[i][0]*forceconv;
       forces[3*(atom->tag[i]-1)+1] = f[i][1]*forceconv;
