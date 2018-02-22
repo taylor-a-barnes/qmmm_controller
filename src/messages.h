@@ -75,12 +75,17 @@ double *qm_force;
 double *mm_force_all;
 double *mm_force_on_qm_atoms;
 
+double *mm_force;
+
 double *qm_ec_force;
 double *aradii;
 
 int qm_mode;
 int qm_verbose;
 int qm_steps;
+
+int qm_start;
+int qm_end;
 
 //}
 

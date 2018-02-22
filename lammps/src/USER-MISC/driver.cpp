@@ -349,9 +349,13 @@ void Driver::command(int narg, char **arg)
 	writebuffer(driver_socket, (char*) &atom->ntypes, 4, error);
       }
     }
-    else if (strcmp(header,"<TYPES     ") == 0 ) {
+    else if (strcmp(header,"<TYPES      ") == 0 ) {
       // send the atom types
       send_types(error);
+    }
+    else if (strcmp(header,"<MASS       ") == 0 ) {
+      // send the atom types
+      send_masses(error);
     }
     else if (strcmp(header,"<CELL       ") == 0 ) {
       send_cell(error);
@@ -370,6 +374,9 @@ void Driver::command(int narg, char **arg)
     }
     else if (strcmp(header,"<FORCES     ") == 0 ) {
       write_forces(error);
+    }
+    else if (strcmp(header,">FORCES     ") == 0 ) {
+      receive_forces(error);
     }
     else {
       error->all(FLERR,"Unknown command from driver");
@@ -396,7 +403,9 @@ void Driver::read_coordinates(Error* error)
   double *buffer;
   buffer = new double[3*atom->natoms];
 
-  readbuffer(driver_socket, (char*) buffer, 8*(3*atom->natoms), error);
+  if (master) {
+    readbuffer(driver_socket, (char*) buffer, (3*atom->natoms)*sizeof(double), error);
+  }
   MPI_Bcast(buffer,3*atom->natoms,MPI_DOUBLE,0,world);
 
   // pick local atoms from the buffer
@@ -464,7 +473,7 @@ void Driver::send_coordinates(Error* error)
   MPI_Reduce(coords, coords_reduced, 3*atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
   if (master) { 
-    writebuffer(driver_socket, (char*) coords_reduced, 8*(3*atom->natoms), error);
+    writebuffer(driver_socket, (char*) coords_reduced, (3*atom->natoms)*sizeof(double), error);
   }
 }
 
@@ -500,7 +509,7 @@ void Driver::send_charges(Error* error)
   MPI_Reduce(charges, charges_reduced, atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
   if (master) { 
-    writebuffer(driver_socket, (char*) charges_reduced, 8*(atom->natoms), error);
+    writebuffer(driver_socket, (char*) charges_reduced, (atom->natoms)*sizeof(double), error);
   }
 }
 
@@ -517,7 +526,24 @@ void Driver::send_types(Error* error)
   int * const type = atom->type;
 
   if (master) { 
-    writebuffer(driver_socket, (char*) type, 8*(atom->ntypes), error);
+    writebuffer(driver_socket, (char*) type, (atom->natoms)*sizeof(int), error);
+  }
+}
+
+
+void Driver::send_masses(Error* error)
+/* Writes to a socket.
+
+   Args:
+   sockfd: The id of the socket that will be written to.
+   data: The data to be written to the socket.
+   len: The length of the data in bytes.
+*/
+{
+  double * const mass = atom->mass;
+
+  if (master) { 
+    writebuffer(driver_socket, (char*) mass, (atom->ntypes)*sizeof(double), error);
   }
 }
 
@@ -577,7 +603,51 @@ void Driver::write_forces(Error* error)
   MPI_Reduce(forces, forces_reduced, 3*atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 
   if (master) { 
-    writebuffer(driver_socket, (char*) forces_reduced, 8*(3*atom->natoms), error);
+    writebuffer(driver_socket, (char*) forces_reduced, (3*atom->natoms)*sizeof(double), error);
+  }
+}
+
+
+void Driver::receive_forces(Error* error)
+/* Writes to a socket.
+
+   Args:
+   sockfd: The id of the socket that will be written to.
+   data: The data to be written to the socket.
+   len: The length of the data in bytes.
+*/
+{
+  double potconv, posconv, forceconv;
+  potconv=3.1668152e-06/force->boltz;
+  posconv=0.52917721*force->angstrom;
+  forceconv=potconv*posconv;
+
+  double *forces;
+  forces = new double[3*atom->natoms];
+
+  if (master) {
+    readbuffer(driver_socket, (char*) forces, (3*atom->natoms)*sizeof(double), error);
+  }
+  MPI_Bcast(forces,3*atom->natoms,MPI_DOUBLE,0,world);
+
+  // pick local atoms from the buffer
+  double **f = atom->f;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  //if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+  for (int i = 0; i < nlocal; i++) {
+    //if (mask[i] & groupbit) {
+
+    if (screen)
+      fprintf(screen,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
+    if (logfile)
+      fprintf(logfile,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
+
+    f[i][0] = forces[3*(atom->tag[i]-1)+0]/forceconv;
+    f[i][1] = forces[3*(atom->tag[i]-1)+1]/forceconv;
+    f[i][2] = forces[3*(atom->tag[i]-1)+2]/forceconv;
+
+    //}
   }
 }
 
@@ -604,6 +674,6 @@ void Driver::send_cell(Error* error)
   celldata[8] = domain->yz;
 
   if (master) { 
-    writebuffer(driver_socket, (char*) celldata, 8*(9), error);
+    writebuffer(driver_socket, (char*) celldata, (9)*sizeof(double), error);
   }
 }

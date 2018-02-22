@@ -163,6 +163,8 @@ int initialize_client(char *name)
 
 int initialize_arrays()
 {
+  int i;
+
   printf("$$$ NATOMS: %i\n",natoms);
   //initialize arrays for QM communication
   qm_coord = ( double* )malloc( 3*num_qm * sizeof(double) );
@@ -179,6 +181,12 @@ int initialize_arrays()
 
   qm_ec_force = ( double* )malloc( 3*num_qm * sizeof(double) );
   aradii = ( double* )malloc( num_mm * sizeof(double) );
+
+  mm_force = ( double* )malloc( 3*natoms * sizeof(double) );
+
+  for (i=0; i < natoms; i++) {
+    mm_mask_all[i] = 0;
+  }
 }
 
 
@@ -281,6 +289,7 @@ int run_simulation()
 {
   int iteration;
   int i;
+  int j;
   int max_iterations = 11;
   double qm_energy;
   
@@ -290,6 +299,8 @@ int run_simulation()
   qm_mode = 2;
   qm_verbose = 1;
   qm_steps = 11;
+  qm_start = 25; //this is the first atom that is part of the QM system
+  qm_end = 27; //this is the last atom that is part of the QM system
 
   printf("qm_mode:    %i\n",qm_mode);
   printf("qm_verbose: %i\n",qm_verbose);
@@ -332,13 +343,13 @@ int run_simulation()
   */
 
   //receive the number of MM atoms from the MM main process
-  send_label(mm_subset_socket, "<NAT");
-  receive_array(mm_subset_socket, &num_mm, 1*sizeof(int));
+  send_label(mm_socket, "<NAT");
+  receive_array(mm_socket, &num_mm, 1*sizeof(int));
   natoms = num_mm;
 
   //receive the number of MM atom types from the MM subset process
-  send_label(mm_subset_socket, "<NTYPES");
-  receive_array(mm_subset_socket, &ntypes, 1*sizeof(int));
+  send_label(mm_socket, "<NTYPES");
+  receive_array(mm_socket, &ntypes, 1*sizeof(int));
 
   //receive the number of MM atoms from the MM subset process
   send_label(mm_subset_socket, "<NAT");
@@ -347,10 +358,21 @@ int run_simulation()
   //initialize the arrays for atoms, forces, etc.
   initialize_arrays();
 
+  //set the mm_mask
+  // this is zero for non-QM atoms, and 1 for QM atoms
+  for (i=qm_start-1; i <= qm_end-1; i++) {
+    mm_mask_all[i] = 1;
+  }
+  printf("Mask:\n");
+  for (i=0; i<natoms; i++) {
+    printf("   %i %i\n",i+1,mm_mask_all[i]);
+  }
+
   //send the QMMM mode to QE
   send_label(qm_socket, ">QMMM_MODE");
   send_array(qm_socket, &qm_mode, 1*sizeof(int));
 
+  printf("natoms: %i\n",natoms);
   printf("Number of atoms: %i",num_qm);
 
   //begin the main MD loop
@@ -399,17 +421,57 @@ int run_simulation()
     send_label(mm_socket, "<COORD");
     receive_array(mm_socket, mm_coord_all, (3*num_mm)*sizeof(double));
 
+    //set the QM coordinates
+    j = 0;
+    for (i=0; i < natoms; i++) {
+      if (mm_mask_all[i] == 1) {
+	qm_coord[3*j+0] = mm_coord_all[3*i+0];
+	qm_coord[3*j+1] = mm_coord_all[3*i+1];
+	qm_coord[3*j+2] = mm_coord_all[3*i+2];
+	j++;
+      }
+    }
+    printf("Coordinates:\n");
+    for (i=0; i<num_qm; i++) {
+      printf("   %i %f %f %f\n",i,qm_coord[3*i+0],qm_coord[3*i+1],qm_coord[3*i+2]);
+    }
+
     //receive the MM charges
     send_label(mm_socket, "<CHARGE");
     receive_array(mm_socket, mm_charge_all, (num_mm)*sizeof(double));
 
+    printf("Charges:\n");
+    for (i=0; i<natoms; i++) {
+      printf("   %i %f\n",i,mm_charge_all[i]);
+    }
+
+    //set the QM charges
+    j = 0;
+    for (i=0; i < natoms; i++) {
+      if (mm_mask_all[i] == 1) {
+	qm_charge[j] = mm_charge_all[i];
+	printf("   SETTING   %i %f\n",i,mm_charge_all[i]);
+	j++;
+      }
+    }
+    printf("Charges:\n");
+    for (i=0; i<num_qm; i++) {
+      printf("   %i %f\n",i,qm_charge[i]);
+    }
+
     //receive the MM types
     send_label(mm_socket, "<TYPES");
-    receive_array(mm_socket, mm_charge_all, (natoms)*sizeof(int));
+    receive_array(mm_socket, type, (natoms)*sizeof(int));
 
-    return 0;
+    //return 0;
+
+    //receive the MM types
+    send_label(mm_socket, "<MASS");
+    //receive_array(mm_socket, mass, (ntypes+1)*sizeof(double));
+    receive_array(mm_socket, mass, (ntypes)*sizeof(double));
 
     //read the label - should be the coordinate information
+    /*
     read_label(mm_socket, buffer);
     printf("Read new label: %s\n",buffer);
     if( strcmp(buffer,"COORDS") == 0 ) {
@@ -418,6 +480,7 @@ int run_simulation()
     else {
       error("Unexpected label");
     }
+    */
 
     //send the MM mask, which describes which atoms are part of the QM subsystem
     send_label(qm_socket, ">MM_MASK");
@@ -516,8 +579,42 @@ int run_simulation()
     //for (i=0; i<3*num_qm; i++) { mm_force_on_qm_atoms[i] = 0.0; }
     //receive_array(mm_subset_socket, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
 
+    //have the MM main process send the forces
+    send_label(mm_socket, "<FORCES");
+    receive_array(mm_socket, mm_force, (3*num_mm)*sizeof(double));
+
+    //add the QM forces to the MM forces
+    j = 0;
+    for (i=0; i < natoms; i++) {
+      if (mm_mask_all[i] == 1) {
+	mm_force[3*i+0] += qm_force[3*j+0] - mm_force_on_qm_atoms[3*j+0];
+	mm_force[3*i+1] += qm_force[3*j+1] - mm_force_on_qm_atoms[3*j+1];
+	mm_force[3*i+2] += qm_force[3*j+2] - mm_force_on_qm_atoms[3*j+2];
+	j++;
+      }
+      else {
+	mm_force[3*i+0] += mm_force_all[3*i+0];
+	mm_force[3*i+1] += mm_force_all[3*i+1];
+	mm_force[3*i+2] += mm_force_all[3*i+2];
+      }
+    }
+
+    //send the updated forces to the MM main process
+    send_label(mm_socket, ">FORCES");
+    send_array(mm_socket, mm_force, (3*num_mm)*sizeof(double));
+
     //send the forces information
-    send_forces(mm_socket);
+    //send_forces(mm_socket);
+
+    /*
+    printf("Sending Forces:\n");
+    for (int i=0; i<num_qm; i++) {
+      printf("   %i %f %f %f\n",i+1,qm_force[3*i+0],qm_force[3*i+1],qm_force[3*i+2]);
+    }
+    send_array(sock, qm_force, (3*num_qm)*sizeof(double));
+    send_array(sock, mm_force_all, (3*natoms)*sizeof(double));
+    send_array(sock, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
+    */
 
   }
 

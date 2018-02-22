@@ -31,10 +31,12 @@ class Driver : protected Pointers {
 
  protected:
   void send_types(Error *);
+  void send_masses(Error *);
   void read_coordinates(Error *);
   void send_coordinates(Error *);
   void send_charges(Error *);
   void write_forces(Error *);
+  void receive_forces(Error *);
   void send_cell(Error *);
   char *host; int port; int inet, master;
   int driver_socket;
