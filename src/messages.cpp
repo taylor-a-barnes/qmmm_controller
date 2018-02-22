@@ -185,7 +185,7 @@ int initialize_arrays()
   mm_force = ( double* )malloc( 3*natoms * sizeof(double) );
 
   for (i=0; i < natoms; i++) {
-    mm_mask_all[i] = 0;
+    mm_mask_all[i] = -1;
   }
 }
 
@@ -359,7 +359,7 @@ int run_simulation()
   initialize_arrays();
 
   //set the mm_mask
-  // this is zero for non-QM atoms, and 1 for QM atoms
+  // this is -1 for non-QM atoms, and 1 for QM atoms
   for (i=qm_start-1; i <= qm_end-1; i++) {
     mm_mask_all[i] = 1;
   }
@@ -424,7 +424,7 @@ int run_simulation()
     //set the QM coordinates
     j = 0;
     for (i=0; i < natoms; i++) {
-      if (mm_mask_all[i] == 1) {
+      if (mm_mask_all[i] != -1) {
 	qm_coord[3*j+0] = mm_coord_all[3*i+0];
 	qm_coord[3*j+1] = mm_coord_all[3*i+1];
 	qm_coord[3*j+2] = mm_coord_all[3*i+2];
@@ -448,7 +448,7 @@ int run_simulation()
     //set the QM charges
     j = 0;
     for (i=0; i < natoms; i++) {
-      if (mm_mask_all[i] == 1) {
+      if (mm_mask_all[i] != -1) {
 	qm_charge[j] = mm_charge_all[i];
 	printf("   SETTING   %i %f\n",i,mm_charge_all[i]);
 	j++;
@@ -467,8 +467,8 @@ int run_simulation()
 
     //receive the MM types
     send_label(mm_socket, "<MASS");
-    //receive_array(mm_socket, mass, (ntypes+1)*sizeof(double));
-    receive_array(mm_socket, mass, (ntypes)*sizeof(double));
+    receive_array(mm_socket, mass, (ntypes+1)*sizeof(double));
+    //receive_array(mm_socket, mass, (ntypes)*sizeof(double));
 
     //read the label - should be the coordinate information
     /*
@@ -586,7 +586,7 @@ int run_simulation()
     //add the QM forces to the MM forces
     j = 0;
     for (i=0; i < natoms; i++) {
-      if (mm_mask_all[i] == 1) {
+      if (mm_mask_all[i] != -1) {
 	mm_force[3*i+0] += qm_force[3*j+0] - mm_force_on_qm_atoms[3*j+0];
 	mm_force[3*i+1] += qm_force[3*j+1] - mm_force_on_qm_atoms[3*j+1];
 	mm_force[3*i+2] += qm_force[3*j+2] - mm_force_on_qm_atoms[3*j+2];

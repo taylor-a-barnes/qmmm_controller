@@ -543,7 +543,7 @@ void Driver::send_masses(Error* error)
   double * const mass = atom->mass;
 
   if (master) { 
-    writebuffer(driver_socket, (char*) mass, (atom->ntypes)*sizeof(double), error);
+    writebuffer(driver_socket, (char*) mass, (atom->ntypes+1)*sizeof(double), error);
   }
 }
 
