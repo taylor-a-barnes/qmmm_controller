@@ -38,6 +38,7 @@ class Driver : protected Pointers {
   void write_forces(Error *);
   void receive_forces(Error *);
   void send_cell(Error *);
+  void timestep(Error *);
   char *host; int port; int inet, master;
   int driver_socket;
   

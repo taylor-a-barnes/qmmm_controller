@@ -701,6 +701,10 @@ END SUBROUTINE qmmm_minimum_image
     !IF (ionode) THEN
     !PRINT *,"****** END OF ADD_ESF COMPUTATION ******"
     !ENDIF
+    WRITE(6,*)'force_qm:'
+    DO ii_qm = 1, nat_qm
+       WRITE(6,*)force_qm(1,ii_qm),force_qm(2,ii_qm),force_qm(3,ii_qm)
+    END DO
 
     RETURN
 

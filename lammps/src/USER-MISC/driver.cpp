@@ -378,6 +378,9 @@ void Driver::command(int narg, char **arg)
     else if (strcmp(header,">FORCES     ") == 0 ) {
       receive_forces(error);
     }
+    else if (strcmp(header,"TIMESTEP    ") == 0 ) {
+      timestep(error);
+    }
     else {
       error->all(FLERR,"Unknown command from driver");
     }
@@ -635,18 +638,22 @@ void Driver::receive_forces(Error* error)
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  if (screen)
+    fprintf(screen,"Received forces: %f\n",forceconv);
+  if (logfile)
+    fprintf(logfile,"Received forces: %f\n",forceconv);
   //if (igroup == atom->firstgroup) nlocal = atom->nfirst;
   for (int i = 0; i < nlocal; i++) {
     //if (mask[i] & groupbit) {
+
+    f[i][0] = forces[3*(atom->tag[i]-1)+0]/forceconv;
+    f[i][1] = forces[3*(atom->tag[i]-1)+1]/forceconv;
+    f[i][2] = forces[3*(atom->tag[i]-1)+2]/forceconv;
 
     if (screen)
       fprintf(screen,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
     if (logfile)
       fprintf(logfile,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
-
-    f[i][0] = forces[3*(atom->tag[i]-1)+0]/forceconv;
-    f[i][1] = forces[3*(atom->tag[i]-1)+1]/forceconv;
-    f[i][2] = forces[3*(atom->tag[i]-1)+2]/forceconv;
 
     //}
   }
@@ -677,4 +684,53 @@ void Driver::send_cell(Error* error)
   if (master) { 
     writebuffer(driver_socket, (char*) celldata, (9)*sizeof(double), error);
   }
+}
+
+
+void Driver::timestep(Error* error)
+/* Writes to a socket.
+
+   Args:
+   sockfd: The id of the socket that will be written to.
+   data: The data to be written to the socket.
+   len: The length of the data in bytes.
+*/
+{
+  /*
+  // calculate the forces
+  update->whichflag = 1; // 1 for dynamics
+  //timer->init_timeout();
+  update->nsteps = 1;
+  //update->firststep = update->ntimestep;
+  //update->laststep = update->ntimestep + update->nsteps;
+  //update->beginstep = update->firststep;
+  //update->endstep = update->laststep;
+  lmp->init();
+  //update->integrate->setup();
+  update->integrate->setup_minimal(0);
+  */
+  //update->integrate->setup();
+  //update->integrate->run(1);
+
+  modify->initial_integrate(0);
+
+  // calculate the forces
+  update->whichflag = 1; // 1 for dynamics
+  timer->init_timeout();
+  update->nsteps = 1;
+  update->ntimestep = 0;
+  update->nsteps = 1;
+  update->firststep = update->ntimestep;
+  update->laststep = update->ntimestep + update->nsteps;
+  update->beginstep = update->firststep;
+  update->endstep = update->laststep;
+  lmp->init();
+  update->integrate->setup();
+
+  //update->integrate->run(1);
+  modify->initial_integrate(0);
+  modify->final_integrate();
+  //if (n_end_of_step) modify->end_of_step();
+  timer->stamp(Timer::MODIFY);
+
 }

@@ -347,21 +347,25 @@ int run_simulation()
   receive_array(mm_socket, &num_mm, 1*sizeof(int));
   natoms = num_mm;
 
-  //receive the number of MM atom types from the MM subset process
+  //receive the number of MM atom types from the MM main process
   send_label(mm_socket, "<NTYPES");
   receive_array(mm_socket, &ntypes, 1*sizeof(int));
 
-  //receive the number of MM atoms from the MM subset process
+  //receive the number of QM atoms from the MM subset process
   send_label(mm_subset_socket, "<NAT");
   receive_array(mm_subset_socket, &num_qm, 1*sizeof(int));
 
   //initialize the arrays for atoms, forces, etc.
   initialize_arrays();
 
+  //receive the MM types
+  send_label(mm_socket, "<TYPES");
+  receive_array(mm_socket, type, (natoms)*sizeof(int));
+
   //set the mm_mask
   // this is -1 for non-QM atoms, and 1 for QM atoms
   for (i=qm_start-1; i <= qm_end-1; i++) {
-    mm_mask_all[i] = 1;
+    mm_mask_all[i] = type[i];
   }
   printf("Mask:\n");
   for (i=0; i<natoms; i++) {
@@ -460,8 +464,8 @@ int run_simulation()
     }
 
     //receive the MM types
-    send_label(mm_socket, "<TYPES");
-    receive_array(mm_socket, type, (natoms)*sizeof(int));
+    //send_label(mm_socket, "<TYPES");
+    //receive_array(mm_socket, type, (natoms)*sizeof(int));
 
     //return 0;
 
@@ -605,8 +609,23 @@ int run_simulation()
     }
 
     //send the updated forces to the MM main process
+    printf("qm_force:\n");
+    for (int i=0; i<num_qm; i++) {
+      printf("   %i %f %f %f\n",i+1,qm_force[3*i+0],qm_force[3*i+1],qm_force[3*i+2]);
+    }
+    printf("mm_force_on_qm_atoms:\n");
+    for (int i=0; i<num_qm; i++) {
+      printf("   %i %f %f %f\n",i+1,mm_force_on_qm_atoms[3*i+0],mm_force_on_qm_atoms[3*i+1],mm_force_on_qm_atoms[3*i+2]);
+    }
+    printf("Sending MM Forces:\n");
+    for (int i=0; i<num_mm; i++) {
+      printf("   %i %f %f %f\n",i+1,mm_force[3*i+0],mm_force[3*i+1],mm_force[3*i+2]);
+    }
     send_label(mm_socket, ">FORCES");
     send_array(mm_socket, mm_force, (3*num_mm)*sizeof(double));
+
+    //have the MM main process iterate
+    send_label(mm_socket, "TIMESTEP");
 
     //send the forces information
     //send_forces(mm_socket);
