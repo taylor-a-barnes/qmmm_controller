@@ -569,7 +569,7 @@ void Driver::write_forces(Error* error)
   forces_reduced = new double[3*atom->natoms];
 
   // calculate the forces
-  update->whichflag = 1;
+  update->whichflag = 0; // 0 for forces
   //timer->init_timeout();
   update->nsteps = 1;
   //update->firststep = update->ntimestep;
@@ -577,7 +577,8 @@ void Driver::write_forces(Error* error)
   //update->beginstep = update->firststep;
   //update->endstep = update->laststep;
   lmp->init();
-  update->integrate->setup();
+  //update->integrate->setup();
+  update->integrate->setup_minimal(0);
   
 
   // pick local atoms from the buffer

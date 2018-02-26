@@ -487,10 +487,6 @@ int run_simulation()
     send_array(qm_socket, mm_mask_all, num_mm*sizeof(int));
 
     //send the MM coordinates to QE
-    send_label(qm_socket, ">MM_COORD");
-    send_array(qm_socket, mm_coord_all, (3*num_mm)*sizeof(double));
-
-    //send the MM coordinates to QE
     send_label(qm_socket, ">MM_TYPE");
     send_array(qm_socket, type, num_mm*sizeof(int));
 
@@ -501,6 +497,15 @@ int run_simulation()
     //send the MM masses to QE
     send_label(qm_socket, ">MM_MASS");
     send_array(qm_socket, mass, (ntypes+1)*sizeof(double));
+
+    //send the MM coordinates to QE
+    send_label(qm_socket, ">MM_COORD");
+    send_array(qm_socket, mm_coord_all, (3*num_mm)*sizeof(double));
+
+    printf("MM coordinates:\n");
+    for (i=0; i<num_mm; i++) {
+      printf("   %i %f %f %f\n",i+1,mm_coord_all[3*i+0],mm_coord_all[3*i+1],mm_coord_all[3*i+2]);
+    }
 
     //get the aradii
     ec_fill_radii(aradii,&num_mm,mass,type,&ntypes);
