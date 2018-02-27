@@ -379,6 +379,8 @@ int run_simulation()
   printf("natoms: %i\n",natoms);
   printf("Number of atoms: %i",num_qm);
 
+  //send_label(mm_subset_socket, "TIMESTEP");
+
   //begin the main MD loop
   for (iteration=1; iteration <= max_iterations; iteration++) {
 

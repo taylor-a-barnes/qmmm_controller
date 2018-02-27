@@ -567,35 +567,55 @@ void Driver::write_forces(Error* error)
 
   double *forces;
   double *forces_reduced;
+  double *x_buf;
+
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
 
   forces = new double[3*atom->natoms];
   forces_reduced = new double[3*atom->natoms];
+  x_buf = new double[3*atom->natoms];
 
-  // calculate the forces
-  update->whichflag = 0; // 0 for forces
-  //timer->init_timeout();
-  update->nsteps = 1;
-  //update->firststep = update->ntimestep;
-  //update->laststep = update->ntimestep + update->nsteps;
-  //update->beginstep = update->firststep;
-  //update->endstep = update->laststep;
-  lmp->init();
-  //update->integrate->setup();
-  update->integrate->setup_minimal(0);
-  
+  if (screen)
+    fprintf(screen,"nlocal: %i\n",atom->nlocal);
+  if (logfile)
+    fprintf(logfile,"nlocal: %i:\n",atom->nlocal);
 
-  // pick local atoms from the buffer
-  double **f = atom->f;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  //certain fixes, such as shake, move the coordinates
+  //to ensure that the coordinates do not change, store a copy
+  double **x = atom->x;
   //if (igroup == atom->firstgroup) nlocal = atom->nfirst;
   for (int i = 0; i < nlocal; i++) {
     //if (mask[i] & groupbit) {
 
-    //if (screen)
-    //  fprintf(screen,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
-    //if (logfile)
-    //  fprintf(logfile,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
+      x_buf[3*i+0] = x[i][0];
+      x_buf[3*i+1] = x[i][1];
+      x_buf[3*i+2] = x[i][2];
+
+    //}
+  }
+
+
+  // calculate the forces
+  update->whichflag = 1; // 0 for forces
+  update->nsteps = 1;
+  lmp->init();
+  update->integrate->setup_minimal(1);
+
+  // pick local atoms from the buffer
+  double **f = atom->f;
+  //if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+  if (screen)
+    fprintf(screen,"Calculating forces:\n");
+  if (logfile)
+    fprintf(logfile,"Calculating forces:\n");
+  for (int i = 0; i < nlocal; i++) {
+    //if (mask[i] & groupbit) {
+
+    if (screen)
+      fprintf(screen,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
+    if (logfile)
+      fprintf(logfile,"f: %i %f %f %f\n",i+1,f[i][0],f[i][1],f[i][2]);
 
       forces[3*(atom->tag[i]-1)+0] = f[i][0]*forceconv;
       forces[3*(atom->tag[i]-1)+1] = f[i][1]*forceconv;
@@ -609,6 +629,30 @@ void Driver::write_forces(Error* error)
   if (master) { 
     writebuffer(driver_socket, (char*) forces_reduced, (3*atom->natoms)*sizeof(double), error);
   }
+
+  if (screen)
+    fprintf(screen,"Restoring original coordinates %i\n",atom->nlocal);
+  if (logfile)
+    fprintf(logfile,"Restoring original coordinates %i\n",atom->nlocal);
+
+  //restore the original set of coordinates
+  //if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+  double **x_new = atom->x;
+  for (int i = 0; i < nlocal; i++) {
+    //if (mask[i] & groupbit) {
+
+    x_new[i][0] = x_buf[3*i+0];
+    x_new[i][1] = x_buf[3*i+1];
+    x_new[i][2] = x_buf[3*i+2];
+
+    //}
+  }
+
+  if (screen)
+    fprintf(screen,"End of write_forces\n");
+  if (logfile)
+    fprintf(logfile,"End of write_forces\n");
+
 }
 
 
