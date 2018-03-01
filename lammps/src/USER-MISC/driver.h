@@ -28,6 +28,7 @@ class Driver : protected Pointers {
  public:
   Driver(class LAMMPS *);
   void command(int, char **);
+  //double *add_force; // stores forces added using +FORCE command
 
  protected:
   void send_types(Error *);
@@ -36,6 +37,7 @@ class Driver : protected Pointers {
   void send_coordinates(Error *);
   void send_charges(Error *);
   void write_forces(Error *);
+  void add_forces(Error *);
   void receive_forces(Error *);
   void send_cell(Error *);
   void timestep(Error *);

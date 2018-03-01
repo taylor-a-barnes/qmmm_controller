@@ -27,6 +27,9 @@
 #include "error.h"
 #include "comm.h"
 #include "irregular.h"
+#include "memory.h"
+#include "fix.h"
+#include "fix_driver.h"
 
 #include "verlet.h"
 #include "neighbor.h"
@@ -300,6 +303,14 @@ void Driver::command(int narg, char **arg)
 
   master = (comm->me==0) ? 1 : 0;
 
+  // allocate arrays
+  /*
+  memory->create(add_force,3*atom->natoms,"driver:add_force");
+  for (int i=0; i< 3*atom->natoms; i++) {
+    add_force[i] = 0.0;
+  }
+  */
+
   // open the socket
   if (master) {
     open_socket(driver_socket, inet, port, host, error);
@@ -377,6 +388,9 @@ void Driver::command(int narg, char **arg)
     }
     else if (strcmp(header,">FORCES     ") == 0 ) {
       receive_forces(error);
+    }
+    else if (strcmp(header,"+FORCES     ") == 0 ) {
+      add_forces(error);
     }
     else if (strcmp(header,"TIMESTEP    ") == 0 ) {
       timestep(error);
@@ -704,6 +718,39 @@ void Driver::receive_forces(Error* error)
 }
 
 
+void Driver::add_forces(Error* error)
+{
+  double potconv, posconv, forceconv;
+  potconv=3.1668152e-06/force->boltz;
+  posconv=0.52917721*force->angstrom;
+  forceconv=potconv*posconv;
+
+  double *forces;
+  forces = new double[3*atom->natoms];
+
+  if (master) {
+    readbuffer(driver_socket, (char*) forces, (3*atom->natoms)*sizeof(double), error);
+  }
+  MPI_Bcast(forces,3*atom->natoms,MPI_DOUBLE,0,world);
+  for (int i = 0; i < 3*atom->natoms; i++) {
+    forces[i] /= forceconv;
+  }
+
+  //identify the driver fix
+  //Fix **fixes = modify->fix;
+  for (int i = 0; i < modify->nfix; i++) {
+    if (strcmp(modify->fix[i]->style,"driver") == 0) {
+      //Fix *fixd = modify->fix[i];
+      FixDriver *fixd = static_cast<FixDriver*>(modify->fix[i]);
+      for (int j = 0; j < 3*atom->natoms; j++) {
+	fixd->add_force[j] = forces[j];
+	if (screen) fprintf(screen,"&&&: %i %f\n",j,fixd->add_force[j]);
+      }
+    }
+  }
+}
+
+
 void Driver::send_cell(Error* error)
 /* Writes to a socket.
 
@@ -756,6 +803,7 @@ void Driver::timestep(Error* error)
   //update->integrate->setup();
   //update->integrate->run(1);
 
+  /*
   modify->initial_integrate(0);
 
   // calculate the forces
@@ -776,5 +824,21 @@ void Driver::timestep(Error* error)
   modify->final_integrate();
   //if (n_end_of_step) modify->end_of_step();
   timer->stamp(Timer::MODIFY);
+  */
+
+  // calculate the forces
+  update->whichflag = 1; // 1 for dynamics
+  timer->init_timeout();
+  update->nsteps = 1;
+  update->ntimestep = 0;
+  update->nsteps = 1;
+  update->firststep = update->ntimestep;
+  update->laststep = update->ntimestep + update->nsteps;
+  update->beginstep = update->firststep;
+  update->endstep = update->laststep;
+  lmp->init();
+  update->integrate->setup();
+
+  update->integrate->run(1);
 
 }

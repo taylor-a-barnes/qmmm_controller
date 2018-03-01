@@ -306,7 +306,6 @@ int run_simulation()
   printf("qm_verbose: %i\n",qm_verbose);
   printf("qm_steps:   %i\n",qm_steps);
 
-
   //return 0;
   /*
   //accept a connection
@@ -562,6 +561,11 @@ int run_simulation()
       printf("Requesting MM_FORCE from QE: %i\n",qm_mode);
       send_label(qm_socket, "<MM_FORCE");
       receive_array(qm_socket, mm_force_all, (3*num_mm)*sizeof(double));
+
+      printf("EC Forces:\n");
+      for (i=0; i<num_mm; i++) {
+	printf("   %i %f %f %f\n",i+1,mm_force_all[3*i+0],mm_force_all[3*i+1],mm_force_all[3*i+2]);
+      }
     }
 
 
@@ -593,6 +597,16 @@ int run_simulation()
     //have the MM main process send the forces
     send_label(mm_socket, "<FORCES");
     receive_array(mm_socket, mm_force, (3*num_mm)*sizeof(double));
+    printf("Original mm_force:\n");
+    for (int i=0; i<num_mm; i++) {
+      printf("   %i %f %f %f\n",i+1,mm_force[3*i+0],mm_force[3*i+1],mm_force[3*i+2]);
+    }
+
+    //////////// ZERO MM forces (for +FORCE command)
+    for (i=0; i < 3*natoms; i++) {
+      mm_force[i] = 0.0;
+    }
+    ////////////
 
     //add the QM forces to the MM forces
     j = 0;
@@ -623,7 +637,7 @@ int run_simulation()
     for (int i=0; i<num_mm; i++) {
       printf("   %i %f %f %f\n",i+1,mm_force[3*i+0],mm_force[3*i+1],mm_force[3*i+2]);
     }
-    send_label(mm_socket, ">FORCES");
+    send_label(mm_socket, "+FORCES");
     send_array(mm_socket, mm_force, (3*num_mm)*sizeof(double));
 
     //have the MM main process iterate
