@@ -10,8 +10,8 @@
 
 #define BUFFER_SIZE 12
 
-void error(char*);
-int send_label(int, char*);
+void error(const char*);
+int send_label(int, const char*);
 int read_label(int, char*);
 int send_array(int, void*, int);
 int receive_array(int, void*, int);

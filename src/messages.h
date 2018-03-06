@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
-//#include <sys/un.h>
 #include <netinet/in.h>
 #include <errno.h>
 #include <unistd.h>
@@ -13,31 +12,18 @@
 #include "../lib/sockets.h"
 #include "../lib/qmmm_aux.c"
 
-#define SOCKET_NAME "./9Lq7BNBnBycd6nxy.socket"
-//#define BUFFER_SIZE 12
-
 //class Messages {
 
 //public:
 int initialize_driver_socket();
-int initialize_socket(char*);
-int initialize_client(char*);
+int initialize_socket();
 int initialize_arrays();
 int accept_mm_connection();
 int accept_mm_subset_connection();
 int accept_qm_connection();
 int run_simulation();
-int communicate();
-int send_initialization(int);
-int receive_initialization(int);
 int send_cell(int);
 int receive_cell(int);
-int send_coordinates();
-int receive_coordinates(int);
-int send_exit();
-int receive_forces();
-int send_forces(int);
-int receive_qm_information(int);
 
 int driver_socket;
 int qm_socket, qm_socket_in;

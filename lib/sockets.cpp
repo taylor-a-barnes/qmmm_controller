@@ -11,7 +11,7 @@
 
 
 /* Print an error message */
-void error(char *msg)
+void error(const char *msg)
 {
   perror(msg);
   exit(1);
@@ -20,7 +20,7 @@ void error(char *msg)
 
 
 /* Send text through the socket */
-int send_label(int socket, char *msg)
+int send_label(int socket, const char *msg)
 {
   int i;
   int ret;
