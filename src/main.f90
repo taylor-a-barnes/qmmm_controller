@@ -5,13 +5,12 @@ program driver
 
   integer :: ret
   character(len=32) :: hostname
-  !character(*) :: hostname
 
   interface
-     function initialize_server__() bind(c, name="initialize_server__")
+     function initialize_driver_socket__() bind(c, name="initialize_driver_socket__")
        use, intrinsic :: iso_c_binding
-       integer(kind=c_int) :: initialize_server__
-     end function initialize_server__
+       integer(kind=c_int) :: initialize_driver_socket__
+     end function initialize_driver_socket__
 
      function accept_mm_connection__() bind(c, name="accept_mm_connection__")
        use, intrinsic :: iso_c_binding
@@ -28,98 +27,40 @@ program driver
        integer(kind=c_int) :: accept_qm_connection__
      end function accept_qm_connection__
 
-     function initialize_arrays__() bind(c, name="initialize_arrays__")
-       use, intrinsic :: iso_c_binding
-       integer(kind=c_int) :: initialize_arrays__
-     end function initialize_arrays__
-
-     function communicate__() bind(c, name="communicate__")
-       use, intrinsic :: iso_c_binding
-       integer(kind=c_int) :: communicate__
-     end function communicate__
-
      function run_simulation__() bind(c, name="run_simulation__")
        use, intrinsic :: iso_c_binding
        integer(kind=c_int) :: run_simulation__
      end function run_simulation__
   end interface
 
-  !initialize the server
-!  ret = initialize_server__()
-
-  !start the client
-  !ret = initialize_arrays__()
-  !call execute_command_line("/project/projectdirs/m1944/tabarnes/edison/qmmm/pipes/build/src_client/client", WAIT=.FALSE.)
-
-  !start communicating with the client
-  !ret = communicate__()
-
-  !start running the simulation
-  !call execute_command_line("srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_main/lib/qmmm/pwqmmm.x qmmm.inp > input.out", WAIT=.FALSE.)
-!  call execute_command_line("cd mm_main", WAIT=.TRUE.)
-!  call execute_command_line("srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out", WAIT=.FALSE.)
-!  call execute_command_line("cd ../", WAIT=.TRUE.)
-
-!  call execute_command_line("pwd", WAIT=.TRUE.)
-!  call execute_command_line("cd mm_main", WAIT=.TRUE.)
-!  call execute_command_line("pwd", WAIT=.TRUE.)
-!  call execute_command_line("srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x mm_main/qmmm.inp > input.out", WAIT=.FALSE.)
-!  call execute_command_line("cd ../", WAIT=.TRUE.)
-!  call execute_command_line("pwd", WAIT=.TRUE.)
-
-  !call execute_command_line("echo ""Starting MASTER client""", WAIT=.TRUE.)
-!  call execute_command_line("(cd ./mm_main; srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
-
-  !call execute_command_line("echo ""Starting SLAVE client""", WAIT=.TRUE.)
-!  call execute_command_line("(cd ./mm_subset; srun -n 1 /project/projectdirs/m1944/tabarnes/edison/qmmm/lammps/mm_small/lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
-
-!<<<<
-!  ret = initialize_server__()
-
-  !NOTE: NEED SOME WAY TO ENSURE THAT THE JOB IS CREATED BY THIS POINT
-
-!  ret = run_simulation__()
-
-  !sleep, to ensure that the LAMMPS call completes
-!  CALL SLEEP(5)
-!>>>
-
-  !call execute_command_line("hostname > hostname", WAIT=.TRUE.)
-  !ret = initialize_server__()
-  !open(unit=27, file="./hostname")
-  !READ(27,'(A)')hostname
-  !close(27)
-  !WRITE(6,*)"(cd ./qm; mpirun -n 1 ~/qmmm/qe/&
-  !     &/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)"
-  !call execute_command_line("(cd ./qm; mpirun -n 1 ~/qmmm/qe/&
-  !     &/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)", WAIT=.FALSE.)
-  !ret = accept_qm_connection__()
-  !RETURN
-
-
-  !call execute_command_line("hostname -i > hostname", WAIT=.TRUE.)
+  ! get the server hostname
   call execute_command_line("hostname > hostname", WAIT=.TRUE.)
-  ret = initialize_server__()
-!  call execute_command_line("(cd ./mm_main; mpirun -n 1 ~/qmmm/lammps/&
-!       &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
-  call execute_command_line("(cd ./mm_main; mpirun -n 1 ~/qmmm/lammps/&
-       &src/lmp_cori2 -in water.in > input.out)", WAIT=.FALSE.)
-  ret = accept_mm_connection__()
-!  call execute_command_line("(cd ./mm_subset; mpirun -n 1 ~/qmmm/lammps/&
-!       &lib/qmmm/pwqmmm.x qmmm.inp > input.out)", WAIT=.FALSE.)
-  call execute_command_line("(cd ./mm_subset; mpirun -n 1 ~/qmmm/lammps/&
-       &src/lmp_cori2 -in water_single.in > input.out)", WAIT=.FALSE.)
-  ret = accept_mm_subset_connection__()
   open(unit=27, file="./hostname")
   READ(27,'(A)')hostname
   close(27)
+
+  ! initialize the driver so that it can accept connections
+  ret = initialize_driver_socket__()
+
+  ! start the MM main process
+  ! this is the process that will perform the MM calculation on the full system
+  call execute_command_line("(cd ./mm_main; mpirun -n 1 ~/qmmm/lammps/&
+       &src/lmp_cori2 -in water.in > input.out)", WAIT=.FALSE.)
+  ret = accept_mm_connection__()
+
+  ! start the MM subset process
+  ! this is the process that will perform the MM calculation on the QM system
+  call execute_command_line("(cd ./mm_subset; mpirun -n 1 ~/qmmm/lammps/&
+       &src/lmp_cori2 -in water_single.in > input.out)", WAIT=.FALSE.)
+  ret = accept_mm_subset_connection__()
+
+  ! start the QM process
   call execute_command_line("(cd ./qm; mpirun -n 32 ~/qmmm/qe/&
        &/bin/pw.x -ipi """ // trim(hostname) // """:8021 -in water.in > water.out)", WAIT=.FALSE.)
-!  call execute_command_line("(cd ./qm; mpirun -n 1 ~/qmmm/qe/&
-!       &/bin/pw.x -ipi knl3.sirius.local.net:8021 -in water.in > water.out)", WAIT=.FALSE.)
   ret = accept_qm_connection__()
+
+  ! start running the simulation
   ret = run_simulation__()
-  !WRITE(6,*)'At end of simulation'
 
   CALL SLEEP(5)
 

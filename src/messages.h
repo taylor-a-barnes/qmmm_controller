@@ -19,7 +19,7 @@
 //class Messages {
 
 //public:
-int initialize_server();
+int initialize_driver_socket();
 int initialize_socket(char*);
 int initialize_client(char*);
 int initialize_arrays();
@@ -91,8 +91,8 @@ int qm_end;
 
 /* Include C wrapper interfaces to some of the C++ routines */
 extern "C" {
-  int initialize_server__() {
-    return initialize_server();
+  int initialize_driver_socket__() {
+    return initialize_driver_socket();
   }
   int accept_mm_connection__() {
     return accept_mm_connection();
@@ -102,12 +102,6 @@ extern "C" {
   }
   int accept_qm_connection__() {
     return accept_qm_connection();
-  }
-  int initialize_arrays__() {
-    return initialize_arrays();
-  }
-  int communicate__() {
-    return communicate();
   }
   int run_simulation__() {
     return run_simulation();

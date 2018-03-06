@@ -12,7 +12,7 @@ void error(char *msg)
 
 
 /* Initialize everything necessary for the driver to act as a server */
-int initialize_server()
+int initialize_driver_socket()
 {
   //qm_socket = initialize_socket(SOCKET_NAME);  
   //mm_socket = initialize_socket("./mm_main/driver.socket");
