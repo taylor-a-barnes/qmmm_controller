@@ -380,7 +380,7 @@ int run_simulation()
 
   //send_label(mm_subset_socket, "TIMESTEP");
 
-  send_label(mm_socket, "MD_INIT");
+  //send_label(mm_socket, "MD_INIT");
 
   //begin the main MD loop
   for (iteration=1; iteration <= max_iterations; iteration++) {
@@ -645,6 +645,9 @@ int run_simulation()
     send_array(mm_socket, mm_force, (3*num_mm)*sizeof(double));
 
     //have the MM main process iterate
+    if (iteration == 1) {
+      send_label(mm_socket, "MD_INIT");
+    }
     send_label(mm_socket, "TIMESTEP");
 
     //send the forces information
