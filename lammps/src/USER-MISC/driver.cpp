@@ -392,6 +392,9 @@ void Driver::command(int narg, char **arg)
     else if (strcmp(header,"+FORCES     ") == 0 ) {
       add_forces(error);
     }
+    else if (strcmp(header,"MD_INIT     ") == 0 ) {
+      md_init(error);
+    }
     else if (strcmp(header,"TIMESTEP    ") == 0 ) {
       timestep(error);
     }
@@ -778,6 +781,29 @@ void Driver::send_cell(Error* error)
 }
 
 
+void Driver::md_init(Error* error)
+/* Writes to a socket.
+
+   Args:
+   sockfd: The id of the socket that will be written to.
+   data: The data to be written to the socket.
+   len: The length of the data in bytes.
+*/
+{
+  // calculate the forces
+  update->whichflag = 1; // 1 for dynamics
+  timer->init_timeout();
+  update->nsteps = 1;
+  update->ntimestep = 0;
+  update->firststep = update->ntimestep;
+  update->laststep = update->ntimestep + update->nsteps;
+  update->beginstep = update->firststep;
+  update->endstep = update->laststep;
+  lmp->init();
+  update->integrate->setup();
+}
+
+
 void Driver::timestep(Error* error)
 /* Writes to a socket.
 
@@ -829,15 +855,21 @@ void Driver::timestep(Error* error)
   // calculate the forces
   update->whichflag = 1; // 1 for dynamics
   timer->init_timeout();
-  update->nsteps = 1;
+  update->nsteps += 1;
+  update->laststep += 1;
+  update->endstep = update->laststep;
+  output->next = update->ntimestep + 1;
+  /*
+  timer->init_timeout();
+  update->nsteps = 10;
   update->ntimestep = 0;
-  update->nsteps = 1;
   update->firststep = update->ntimestep;
   update->laststep = update->ntimestep + update->nsteps;
   update->beginstep = update->firststep;
   update->endstep = update->laststep;
-  lmp->init();
-  update->integrate->setup();
+  */
+  //lmp->init();
+  //update->integrate->setup();
 
   update->integrate->run(1);
 

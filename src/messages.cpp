@@ -380,6 +380,8 @@ int run_simulation()
 
   //send_label(mm_subset_socket, "TIMESTEP");
 
+  send_label(mm_socket, "MD_INIT");
+
   //begin the main MD loop
   for (iteration=1; iteration <= max_iterations; iteration++) {
 
@@ -595,12 +597,14 @@ int run_simulation()
     //receive_array(mm_subset_socket, mm_force_on_qm_atoms, (3*num_qm)*sizeof(double));
 
     //have the MM main process send the forces
+    /*
     send_label(mm_socket, "<FORCES");
     receive_array(mm_socket, mm_force, (3*num_mm)*sizeof(double));
     printf("Original mm_force:\n");
     for (int i=0; i<num_mm; i++) {
       printf("   %i %f %f %f\n",i+1,mm_force[3*i+0],mm_force[3*i+1],mm_force[3*i+2]);
     }
+    */
 
     //////////// ZERO MM forces (for +FORCE command)
     for (i=0; i < 3*natoms; i++) {
