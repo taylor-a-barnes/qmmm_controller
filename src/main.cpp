@@ -38,7 +38,7 @@ int main()
   accept_qm_connection();
 
   //start running the simulation
-  run_simulation();
+  run_qmmm();
 
   return 0;
 }

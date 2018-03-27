@@ -22,7 +22,6 @@ int initialize_arrays();
 int accept_mm_connection();
 int accept_mm_subset_connection();
 int accept_qm_connection();
-int run_simulation();
 int send_cell(int);
 int receive_cell(int);
 
