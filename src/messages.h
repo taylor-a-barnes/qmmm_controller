@@ -16,6 +16,7 @@
 
 //public:
 int initialize_driver_socket();
+int launch_server();
 int initialize_socket();
 int initialize_arrays();
 int accept_mm_connection();
@@ -79,6 +80,9 @@ extern int qm_end;
 extern "C" {
   int initialize_driver_socket__() {
     return initialize_driver_socket();
+  }
+  int launch_server__() {
+    return launch_server();
   }
   int accept_mm_connection__() {
     return accept_mm_connection();

@@ -12,6 +12,11 @@ program driver
        integer(kind=c_int) :: initialize_driver_socket__
      end function initialize_driver_socket__
 
+     function launch_server__() bind(c, name="launch_server__")
+       use, intrinsic :: iso_c_binding
+       integer(kind=c_int) :: launch_server__
+     end function launch_server__
+
      function accept_mm_connection__() bind(c, name="accept_mm_connection__")
        use, intrinsic :: iso_c_binding
        integer(kind=c_int) :: accept_mm_connection__
@@ -44,8 +49,7 @@ program driver
 
   ! start the MM main process
   ! this is the process that will perform the MM calculation on the full system
-  call execute_command_line("(cd ./mm_main; mpirun -n 1 ~/qmmm/lammps/&
-       &src/lmp_cori2 -in water.in > input.out)", WAIT=.FALSE.)
+  ret = launch_server__()
   ret = accept_mm_connection__()
 
   ! start the MM subset process
