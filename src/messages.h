@@ -16,7 +16,7 @@
 
 //public:
 int initialize_driver_socket();
-int launch_server();
+int launch_server(const char*);
 int initialize_socket();
 int initialize_arrays();
 int accept_mm_connection();
@@ -77,6 +77,7 @@ extern int qm_end;
 //}
 
 /* Include C wrapper interfaces to some of the C++ routines */
+/*
 extern "C" {
   int initialize_driver_socket__() {
     return initialize_driver_socket();
@@ -97,5 +98,6 @@ extern "C" {
     return run_simulation();
   }
 }
+*/
 
 #endif

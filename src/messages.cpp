@@ -65,15 +65,15 @@ int initialize_driver_socket()
 
 
 
-/* Initialize everything necessary for the driver to act as a server */
-int launch_server()
+/* Launch a server by first creating a fork */
+int launch_server(const char *line)
 {
-  //launch a server by first creating a fork
-
+  //create a fork
   int pid = fork();
+
   if (pid == 0) {
     //child process
-    system("(cd ./mm_main; mpirun -n 1 ~/qmmm/lammps/src/lmp_cori2 -in water.in > input.out)");
+    system(line);
     exit(0);
   }
 
