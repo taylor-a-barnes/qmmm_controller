@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include "../lib/sockets.h"
-#include "../lib/qmmm_aux.c"
+#include "../lib/qmmm_aux.h"
 
 //class Messages {
 
@@ -25,53 +25,53 @@ int run_simulation();
 int send_cell(int);
 int receive_cell(int);
 
-int driver_socket;
-int qm_socket, qm_socket_in;
-int mm_socket, mm_socket_in;
-int mm_subset_socket, mm_subset_socket_in;
-struct sockaddr_un qm_server, qm_client;
-char buffer[BUFFER_SIZE];
+extern int driver_socket;
+extern int qm_socket, qm_socket_in;
+extern int mm_socket, mm_socket_in;
+extern int mm_subset_socket, mm_subset_socket_in;
+extern struct sockaddr_un qm_server, qm_client;
+extern char buffer[BUFFER_SIZE];
 
-int natoms = 3;
-int num_qm = 2;
-int num_mm = 2;
-int ntypes = 2;
+extern int natoms;
+extern int num_qm;
+extern int num_mm;
+extern int ntypes;
 
-float boxlo0 = 0.0;
-float boxlo1 = 0.0;
-float boxlo2 = 0.0;
-float boxhi0 = 0.0;
-float boxhi1 = 0.0;
-float boxhi2 = 0.0;
-float cellxy = 0.0;
-float cellxz = 0.0;
-float cellyz = 0.0;
+extern float boxlo0;
+extern float boxlo1;
+extern float boxlo2;
+extern float boxhi0;
+extern float boxhi1;
+extern float boxhi2;
+extern float cellxy;
+extern float cellxz;
+extern float cellyz;
 
-const float angstrom_to_bohr = 1.889725989;
+extern const float angstrom_to_bohr;
 
-double *qm_coord; //in bohr
-double *qm_charge;
-double *mm_charge_all;
-double *mm_coord_all; //in bohr
-int *mm_mask_all;
-int *type;
-double *mass;
+extern double *qm_coord; //in bohr
+extern double *qm_charge;
+extern double *mm_charge_all;
+extern double *mm_coord_all; //in bohr
+extern int *mm_mask_all;
+extern int *type;
+extern double *mass;
 
-double *qm_force;
-double *mm_force_all;
-double *mm_force_on_qm_atoms;
+extern double *qm_force;
+extern double *mm_force_all;
+extern double *mm_force_on_qm_atoms;
 
-double *mm_force;
+extern double *mm_force;
 
-double *qm_ec_force;
-double *aradii;
+extern double *qm_ec_force;
+extern double *aradii;
 
-int qm_mode;
-int qm_verbose;
-int qm_steps;
+extern int qm_mode;
+extern int qm_verbose;
+extern int qm_steps;
 
-int qm_start;
-int qm_end;
+extern int qm_start;
+extern int qm_end;
 
 //}
 

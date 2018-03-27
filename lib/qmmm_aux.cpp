@@ -12,9 +12,7 @@
    Contributing authors:  Axel Kohlmeyer (ICTP), Carlo Cavazzoni (CINECA)
 ------------------------------------------------------------------------- */
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<math.h>
+#include "qmmm_aux.h"
 
 //#include "c_defs.h"
 
