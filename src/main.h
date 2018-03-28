@@ -6,6 +6,7 @@
 #include <fstream>
 #include "messages.h"
 #include "qmmm.h"
+#include "mm.h"
 
 using namespace std;
 
