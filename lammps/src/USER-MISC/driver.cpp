@@ -68,6 +68,7 @@ neighbor->every = 1;
 //>>>>>>
 
 const double bohr_to_angstrom = 0.52917720859;
+const double force_conv = 3.1668152e-06;
 
 /** hash table top level data structure */
 typedef struct taginthash_t {
@@ -583,7 +584,7 @@ void Driver::write_forces(Error* error)
 */
 {
   double potconv, posconv, forceconv;
-  potconv=3.1668152e-06/force->boltz;
+  potconv=force_conv/force->boltz;
   posconv=bohr_to_angstrom*force->angstrom;
   forceconv=potconv*posconv;
 
@@ -688,7 +689,7 @@ void Driver::receive_forces(Error* error)
 */
 {
   double potconv, posconv, forceconv;
-  potconv=3.1668152e-06/force->boltz;
+  potconv=force_conv/force->boltz;
   posconv=bohr_to_angstrom*force->angstrom;
   forceconv=potconv*posconv;
 
@@ -729,8 +730,8 @@ void Driver::receive_forces(Error* error)
 void Driver::add_forces(Error* error)
 {
   double potconv, posconv, forceconv;
-  potconv=3.1668152e-06/force->boltz;
-  posconv=0.52917721*force->angstrom;
+  potconv=force_conv/force->boltz;
+  posconv=bohr_to_angstrom*force->angstrom;
   forceconv=potconv*posconv;
 
   double *forces;
