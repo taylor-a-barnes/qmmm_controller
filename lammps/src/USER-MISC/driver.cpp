@@ -50,7 +50,8 @@ using namespace LAMMPS_NS;
 #define MSGLEN 12
 #define MAXLINE 2048
 
-/*<<<<<<
+//<<<<<<
+/*
 
 // asks for evaluation of PE at first step
 modify->compute[modify->find_compute("thermo_pe")]->invoked_scalar = -1;
@@ -63,9 +64,10 @@ kspace_flag = (force->kspace) ? 1 : 0;
 // makes sure that neighbor lists are re-built at each step (cannot make assumptions when cycling over beads!)
 neighbor->delay = 0;
 neighbor->every = 1;
-/*>>>>>>
+*/
+//>>>>>>
 
-
+const double bohr_to_angstrom = 0.52917720859;
 
 /** hash table top level data structure */
 typedef struct taginthash_t {
@@ -303,6 +305,7 @@ void Driver::command(int narg, char **arg)
 
   master = (comm->me==0) ? 1 : 0;
 
+
   // allocate arrays
   /*
   memory->create(add_force,3*atom->natoms,"driver:add_force");
@@ -417,7 +420,7 @@ void Driver::read_coordinates(Error* error)
 */
 {
   double posconv;
-  posconv=0.52917721*force->angstrom;
+  posconv=bohr_to_angstrom*force->angstrom;
 
   // create a buffer to hold the coordinates
   double *buffer;
@@ -467,10 +470,12 @@ void Driver::send_coordinates(Error* error)
 */
 {
   double posconv;
-  posconv=0.52917721*force->angstrom;
+  posconv=bohr_to_angstrom*force->angstrom;
 
   double *coords;
   double *coords_reduced;
+
+  fprintf(screen,"bohr_to_angstrom: %f\n",bohr_to_angstrom);
 
   coords = new double[3*atom->natoms];
   coords_reduced = new double[3*atom->natoms];
@@ -579,7 +584,7 @@ void Driver::write_forces(Error* error)
 {
   double potconv, posconv, forceconv;
   potconv=3.1668152e-06/force->boltz;
-  posconv=0.52917721*force->angstrom;
+  posconv=bohr_to_angstrom*force->angstrom;
   forceconv=potconv*posconv;
 
   double *forces;
@@ -684,7 +689,7 @@ void Driver::receive_forces(Error* error)
 {
   double potconv, posconv, forceconv;
   potconv=3.1668152e-06/force->boltz;
-  posconv=0.52917721*force->angstrom;
+  posconv=bohr_to_angstrom*force->angstrom;
   forceconv=potconv*posconv;
 
   double *forces;
