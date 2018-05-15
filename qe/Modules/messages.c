@@ -14,6 +14,7 @@ int initialize_client()
   //ifstream hostfile("../hostname");
   FILE *infile;
   char readline[32];
+  int delay_value = 1;
   //char first;
 
   port = 8021;
@@ -58,6 +59,12 @@ int initialize_client()
     error("Could not create socket");
   }
   printf("Here is the socket: %i\n",driver_socket);
+
+  //turn off TCP delay
+  ret = setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &delay_value, sizeof(int));
+  if (ret < 0) {
+    error("Could not turn off TCP delay");
+  }
 
   //connect to the driver
   ret = connect(driver_socket, (const struct sockaddr *) &driver_address, sizeof(struct sockaddr_un));
