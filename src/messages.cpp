@@ -90,6 +90,9 @@ int initialize_socket()
   struct sockaddr_in serv_addr;
   int port;
   int reuse_value = 1;
+  //<<<
+  int delay_value = 1;
+  //>>>
 
   port = 8021;
 
@@ -104,6 +107,13 @@ int initialize_socket()
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
   serv_addr.sin_port = htons(port);
+
+  //<<<
+  ret = setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, &delay_value, sizeof(int));
+  if (ret < 0) {
+    error("Could not turn off TCP delay");
+  }
+  //>>>
 
   //enable reuse of the socket
   ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse_value, sizeof(int));
